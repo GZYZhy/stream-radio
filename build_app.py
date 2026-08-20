@@ -282,6 +282,10 @@ def _entitlements_path():
     <false/>
     <key>CFBundleIdentifier</key>
     <string>cn.zdeweb.app-stream-radio</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
 </dict>
 </plist>
 """

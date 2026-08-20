@@ -19,7 +19,16 @@ import time
 import json
 import shutil
 import logging
+import threading
 from datetime import datetime
+
+
+# ============================================================
+# 版本信息
+# ============================================================
+
+APP_NAME = "网络电台"
+APP_VERSION = "1.0"
 
 
 # ============================================================
@@ -76,12 +85,12 @@ from PyQt6.QtWidgets import (
     QListWidget, QListWidgetItem, QPushButton, QLabel, QSlider,
     QGroupBox, QMessageBox, QInputDialog, QFileDialog, QMenuBar,
     QMenu, QDialog, QTabWidget, QCheckBox, QSpinBox, QProgressBar,
-    QSystemTrayIcon, QLineEdit, QComboBox, QFrame,
+    QSystemTrayIcon, QLineEdit, QComboBox, QFrame, QTextEdit, QPlainTextEdit,
     QDialogButtonBox, QFormLayout,
 )
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtGui import QAction, QKeySequence, QIcon, QShortcut, QColor
-from PyQt6.QtCore import QUrl, Qt, QTimer, QSettings
+from PyQt6.QtCore import QUrl, Qt, QTimer, QSettings, QThread, pyqtSignal
 
 
 # ============================================================
@@ -409,6 +418,207 @@ def download_m3u(url, timeout=15):
     finally:
         os.unlink(tmppath)
     return result
+
+
+# ============================================================
+# ICY 元数据抓取（流内联节目信息）
+# ============================================================
+
+class IcyMetadataFetcher(QThread):
+    """后台线程：直连音频流（mp3/aac/ogg）抓取 ICY 元数据，实时上报节目/曲目。
+
+    原理：icecast/shoutcast 服务器在客户端请求头带 "Icy-MetaData: 1" 时，
+    会按固定字节间隔（响应头 icy-metaint）在音频流中插入一段元数据，
+    其中 StreamTitle= 字段即当前播放的节目/歌曲名。
+    QMediaPlayer 无法自定义请求头，故由本线程自抓流、自解析。
+    """
+
+    program_updated = pyqtSignal(str)   # 每次解析到新的节目/曲目文本
+
+    def __init__(self, url, parent=None):
+        super().__init__(parent)
+        self._url = url
+        self._stop_flag = threading.Event()
+
+    def run(self):
+        # 连不上 / 服务器不支持 ICY 都静默结束，不影响正常播放
+        try:
+            self._fetch()
+        except Exception:
+            pass
+
+    def stop(self):
+        """请求停止并等待线程退出（QThread::wait 带超时保护，避免换台卡界面）"""
+        self._stop_flag.set()
+        self.wait(2000)
+
+    # ---- 内部实现 ----
+
+    def _fetch(self):
+        import urllib.request
+        import ssl
+
+        req = urllib.request.Request(self._url, headers={
+            "User-Agent": ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                           "AppleWebKit/537.36 (KHTML, like Gecko) "
+                           "Chrome/125.0 Safari/537.36 RadioPlayer/1.0"),
+            "Accept": "*/*",
+            "Icy-MetaData": "1",   # 关键：向服务器请求内联元数据
+        })
+        # 兼容自签名证书的 HTTPS 电台
+        ctx = ssl._create_unverified_context() if self._url.startswith("https") else None
+        resp = urllib.request.urlopen(req, timeout=3, context=ctx)
+
+        # 服务器未启用 ICY 元数据则直接结束（该台没有内联节目信息）
+        metaint = resp.headers.get("icy-metaint")
+        if not metaint:
+            return
+        metaint = int(metaint)
+
+        last_title = ""
+        while not self._stop_flag.is_set():
+            # 跳过一段音频，再读「1 字节长度 + 长度*16 字节」的元数据块
+            if not self._read_exact(resp, metaint):
+                break                    # 流断开
+            length = self._read_exact(resp, 1)
+            if not length:
+                break
+            meta_len = length[0] * 16
+            if meta_len > 0:
+                meta = self._read_exact(resp, meta_len)
+                title = self._parse_title(meta)
+                if title and title != last_title:
+                    last_title = title
+                    self.program_updated.emit(title)
+
+    def _read_exact(self, resp, n):
+        """精确读取 n 字节（urllib 可能分多次返回）；超时/被中断时返回 b"" """
+        buf = b""
+        while len(buf) < n:
+            if self._stop_flag.is_set():
+                return b""
+            try:
+                chunk = resp.read(n - len(buf))
+            except Exception:
+                return b""
+            if not chunk:
+                return b""
+            buf += chunk
+        return buf
+
+    @staticmethod
+    def _parse_title(meta):
+        """从元数据块中提取 StreamTitle='...'，返回清理后的文本。
+
+        ICY 元数据不声明编码：欧美台多为 UTF-8，华语台常为 GBK，
+        故在字节层提取标题后依次尝试 utf-8 → gbk → latin-1 解码。
+        """
+        if not meta:
+            return ""
+        m = re.search(rb"StreamTitle='([^']*)'", meta)
+        if not m:
+            return ""
+        raw = m.group(1)
+        for enc in ("utf-8", "gbk"):
+            try:
+                title = raw.decode(enc)
+                break
+            except UnicodeDecodeError:
+                continue
+        else:
+            title = raw.decode("latin-1", errors="replace")
+        # 去掉标题中的控制字符（有些台会混入 \x01 等）
+        title = "".join(c for c in title if ord(c) >= 32)
+        return title.strip()
+
+
+class IcecastStatusFetcher(QThread):
+    """后台线程：通过 Icecast/Shoutcast 的 /status-json.xsl 接口查询当前节目。
+
+    有些台关闭了流内 ICY 元数据（或走 HLS），但服务器仍提供 status-json
+    接口（JSON），内含当前节目/曲目。本线程作为流内 ICY 之外的兜底来源，
+    只要目标流托管在 Icecast 服务器上即可生效，最大化兼容节目信息。
+    """
+
+    program_updated = pyqtSignal(str)   # 每次查到新的节目/曲目文本
+
+    def __init__(self, url, parent=None):
+        super().__init__(parent)
+        self._url = url
+        self._stop_flag = threading.Event()
+
+    def run(self):
+        try:
+            self._fetch()
+        except Exception:
+            pass
+
+    def stop(self):
+        self._stop_flag.set()
+        self.wait(2000)
+
+    def _fetch(self):
+        import urllib.request
+        import urllib.error
+        import ssl
+        import json
+        from urllib.parse import urlparse
+
+        # Icecast 状态接口与流同主机同端口
+        try:
+            u = urlparse(self._url)
+            host = u.hostname
+            if not host:
+                return
+            port = u.port or (443 if u.scheme == "https" else 80)
+            status_url = f"{u.scheme}://{host}:{port}/status-json.xsl"
+        except Exception:
+            return
+
+        req = urllib.request.Request(status_url, headers={
+            "User-Agent": "Mozilla/5.0 RadioPlayer/1.0",
+        })
+        ctx = ssl._create_unverified_context() if status_url.startswith("https") else None
+        try:
+            resp = urllib.request.urlopen(req, timeout=3, context=ctx)
+            data = resp.read(65536)
+        except Exception:
+            return  # 非 Icecast 服务器，静默结束
+
+        try:
+            obj = json.loads(data)
+        except Exception:
+            return
+
+        srcs = obj.get("icestats", {}).get("source", [])
+        if isinstance(srcs, dict):
+            srcs = [srcs]
+
+        # 优先按 listenurl 精确匹配当前台；匹配不到且只有一个源时直接用
+        target = self._url.rstrip("/").lower()
+        chosen = None
+        for s in srcs:
+            lu = (s.get("listenurl") or "").rstrip("/").lower()
+            if lu == target:
+                chosen = s
+                break
+        if chosen is None and len(srcs) == 1:
+            chosen = srcs[0]
+        if not chosen:
+            return
+
+        title = (chosen.get("title") or "").strip()
+        if not title:
+            title = (chosen.get("songtitle") or "").strip()
+        if not title:
+            title = (chosen.get("yp_currently_playing") or "").strip()
+        if not title:
+            artist = (chosen.get("artist") or "").strip()
+            song = (chosen.get("song") or "").strip()
+            if artist or song:
+                title = " — ".join(x for x in (artist, song) if x)
+        if title:
+            self.program_updated.emit(title)
 
 
 # ============================================================
@@ -862,7 +1072,11 @@ class ConnectivityCheckDialog(QDialog):
         self.status_label.setText(f"检查中... {idx + 1}/{len(self.radios)}")
 
     def _check_url(self, url, timeout=5):
-        """检查 URL 是否可连通，返回 (ok, duration_ms, error_msg)"""
+        """检查 URL 是否可连通，返回 (ok, duration_ms, error_msg)。
+
+        部分流媒体服务器不支持 HEAD（会返回 400/405），若因此误判失败，
+        会改用 GET 只读少量数据再次验证，避免把「能播」判成「失败」。
+        """
         import urllib.request
         import urllib.error
         import ssl
@@ -870,37 +1084,38 @@ class ConnectivityCheckDialog(QDialog):
 
         # 连通性检查不校验证书（很多电台使用自签名证书）
         ctx = ssl._create_unverified_context()
-
         start = time.time()
+
+        def _get_check():
+            """GET 只读少量数据判定连通，返回 (ok, error_msg)"""
+            try:
+                req = urllib.request.Request(url, headers={
+                    "User-Agent": "Mozilla/5.0 RadioPlayer/1.0",
+                })
+                resp = urllib.request.urlopen(req, timeout=timeout, context=ctx)
+                resp.read(4096)  # 只读 4KB 就断开
+                resp.close()
+                return True, ""
+            except urllib.error.HTTPError as e:
+                # 403/404 等说明服务器有 HTTP 服务，只是拒绝该请求，视为“有响应”
+                if e.code in (401, 403, 404, 405, 416):
+                    return True, f"HTTP {e.code}: {e.reason}"
+                return False, f"HTTP 错误：{e.code} {e.reason}"
+            except Exception as e:
+                return False, str(e)
+
+        # 先 HEAD 快速探测
         try:
             req = urllib.request.Request(url, method="HEAD", headers={
                 "User-Agent": "Mozilla/5.0 RadioPlayer/1.0",
                 "Icy-MetaData": "1",  # 兼容流媒体
             })
             urllib.request.urlopen(req, timeout=timeout, context=ctx)
-            duration = int((time.time() - start) * 1000)
-            return True, duration, ""
-        except urllib.error.HTTPError as e:
-            # 403/404 等 HTTP 错误也算连通（服务器有响应）
-            duration = int((time.time() - start) * 1000)
-            if e.code in (401, 403, 404, 405, 416):
-                # 有响应但状态异常，认为连通
-                return True, duration, f"HTTP {e.code}: {e.reason}"
-            return False, duration, f"HTTP 错误：{e.code} {e.reason}"
-        except Exception as e:
-            duration = int((time.time() - start) * 1000)
-            # 可能 HEAD 不支持，试一下 GET 只读少量数据
-            try:
-                req = urllib.request.Request(url, headers={
-                    "User-Agent": "Mozilla/5.0 RadioPlayer/1.0",
-                })
-                resp = urllib.request.urlopen(req, timeout=timeout, context=ctx)
-                resp.read(1024)  # 只读 1KB
-                resp.close()
-                duration = int((time.time() - start) * 1000)
-                return True, duration, ""
-            except Exception as e2:
-                return False, duration, str(e2)
+            return True, int((time.time() - start) * 1000), ""
+        except Exception:
+            # HEAD 不被支持（400/405）或网络异常 → 用 GET 验证真实可播性
+            ok, err = _get_check()
+            return ok, int((time.time() - start) * 1000), err
 
     def _on_item_clicked(self, item):
         """点击查看详情"""
@@ -951,6 +1166,12 @@ class RadioWindow(QMainWindow):
         self.current_index = -1
         self.current_pool = "all"         # 当前换台范围："all"=全部电台，"starred"=星标台
         self.is_playing = False
+
+        # 后台节目信息抓取线程
+        self._icy_fetcher = None          # 流内 ICY 元数据（直连音频流）
+        self._status_fetcher = None       # Icecast status-json（所有台兜底）
+        self._icy_has_data = False        # ICY 已拿到数据则优先于 status-json
+        self._icy_program_text = ""       # 最近一次节目/曲目文本
 
         # 录制相关
         self.record_proc = None
@@ -1064,6 +1285,13 @@ class RadioWindow(QMainWindow):
         radio_layout = QVBoxLayout(radio_tab)
         radio_layout.setContentsMargins(6, 8, 6, 6)
         radio_layout.setSpacing(8)
+
+        # 电台搜索框：按名称实时过滤「全部 / 星标台」两个列表（仅隐藏不匹配项，不改索引）
+        self.search_edit = QLineEdit()
+        self.search_edit.setPlaceholderText("🔍 搜索电台…")
+        self.search_edit.setClearButtonEnabled(True)
+        self.search_edit.textChanged.connect(self._filter_radios)
+        radio_layout.addWidget(self.search_edit)
 
         # 内层分页：全部电台 / 星标台（决定换台范围）
         self.inner_tabs = QTabWidget()
@@ -1260,7 +1488,7 @@ class RadioWindow(QMainWindow):
 
         about_layout.addSpacing(12)
 
-        about_info = QLabel("开发者：GZYZhy\n开源协议：MIT License")
+        about_info = QLabel(f"版本：{APP_VERSION}\n开发者：GZYZhy\n开源协议：MIT License")
         about_info.setStyleSheet("font-size: 12px;")
         about_layout.addWidget(about_info)
 
@@ -1700,16 +1928,27 @@ class RadioWindow(QMainWindow):
         self._last_is_dark = is_dark
 
     def _install_shortcuts(self):
-        """键盘快捷键"""
-        QShortcut(QKeySequence(Qt.Key.Key_Up), self, activated=self.prev)
-        QShortcut(QKeySequence(Qt.Key.Key_Down), self, activated=self.next)
-        QShortcut(QKeySequence(Qt.Key.Key_Space), self, activated=self._toggle_play)
-        QShortcut(QKeySequence(Qt.Key.Key_Return), self, activated=self.play_selected)
-        QShortcut(QKeySequence(Qt.Key.Key_Enter), self, activated=self.play_selected)
-        QShortcut(QKeySequence("Ctrl+R"), self, activated=self._toggle_record)
-        QShortcut(QKeySequence("Ctrl+N"), self, activated=self.add_station)
-        QShortcut(QKeySequence("Ctrl+O"), self, activated=self.import_stations)
-        QShortcut(QKeySequence("Delete"), self, activated=self.remove_station)
+        """键盘快捷键
+
+        空格/回车/上下等单键快捷键在文本输入控件聚焦时自动让位，
+        避免拦截搜索框等处的正常输入（如搜索框里敲空格）。
+        """
+        def _guard(slot):
+            """若焦点在输入类控件中，则忽略单键快捷键"""
+            def _run():
+                if isinstance(self.focusWidget(),
+                              (QLineEdit, QPlainTextEdit, QTextEdit, QComboBox)):
+                    return  # 正在输入文本，单键快捷键让位
+                slot()
+            return _run
+
+        QShortcut(QKeySequence(Qt.Key.Key_Up), self, activated=_guard(self.prev))
+        QShortcut(QKeySequence(Qt.Key.Key_Down), self, activated=_guard(self.next))
+        QShortcut(QKeySequence(Qt.Key.Key_Space), self, activated=_guard(self._toggle_play))
+        QShortcut(QKeySequence(Qt.Key.Key_Return), self, activated=_guard(self.play_selected))
+        QShortcut(QKeySequence(Qt.Key.Key_Enter), self, activated=_guard(self.play_selected))
+        # 组合快捷键（⌘N/⌘O/⌘R/⌫ 等）已由菜单栏 QAction 提供，此处不再重复绑定，
+        # 避免同一按键被两个 shortcut 捕获造成双重触发
 
     # ---- 托盘图标 ----
     def _setup_tray(self):
@@ -1877,12 +2116,12 @@ class RadioWindow(QMainWindow):
         file_menu = menubar.addMenu("文件")
 
         add_act = QAction("添加电台…", self)
-        add_act.setShortcut(QKeySequence("Cmd+N"))
+        add_act.setShortcut(QKeySequence("Ctrl+N"))
         add_act.triggered.connect(self.add_station)
         file_menu.addAction(add_act)
 
         import_act = QAction("导入电台…", self)
-        import_act.setShortcut(QKeySequence("Cmd+O"))
+        import_act.setShortcut(QKeySequence("Ctrl+O"))
         import_act.triggered.connect(self.import_stations)
         file_menu.addAction(import_act)
 
@@ -1907,7 +2146,7 @@ class RadioWindow(QMainWindow):
         file_menu.addSeparator()
 
         save_act = QAction("保存列表", self)
-        save_act.setShortcut(QKeySequence("Cmd+S"))
+        save_act.setShortcut(QKeySequence("Ctrl+S"))
         save_act.triggered.connect(self.save_list)
         file_menu.addAction(save_act)
 
@@ -1918,7 +2157,7 @@ class RadioWindow(QMainWindow):
         file_menu.addSeparator()
 
         quit_act = QAction("退出", self)
-        quit_act.setShortcut(QKeySequence("Cmd+Q"))
+        quit_act.setShortcut(QKeySequence("Ctrl+Q"))
         quit_act.triggered.connect(self.close)
         file_menu.addAction(quit_act)
 
@@ -1926,12 +2165,12 @@ class RadioWindow(QMainWindow):
         edit_menu = menubar.addMenu("编辑")
 
         up_act = QAction("上移电台", self)
-        up_act.setShortcut(QKeySequence("Cmd+Up"))
+        up_act.setShortcut(QKeySequence("Ctrl+Up"))
         up_act.triggered.connect(self.move_up)
         edit_menu.addAction(up_act)
 
         down_act = QAction("下移电台", self)
-        down_act.setShortcut(QKeySequence("Cmd+Down"))
+        down_act.setShortcut(QKeySequence("Ctrl+Down"))
         down_act.triggered.connect(self.move_down)
         edit_menu.addAction(down_act)
 
@@ -1956,43 +2195,39 @@ class RadioWindow(QMainWindow):
         play_menu = menubar.addMenu("播放")
 
         play_toggle_act = QAction("播放/暂停", self)
-        play_toggle_act.setShortcut(QKeySequence(" "))
         play_toggle_act.triggered.connect(self._toggle_play)
         play_menu.addAction(play_toggle_act)
 
         stop_act = QAction("停止", self)
-        stop_act.setShortcut(QKeySequence("."))
         stop_act.triggered.connect(self.stop)
         play_menu.addAction(stop_act)
 
         play_menu.addSeparator()
 
         prev_act = QAction("上一台", self)
-        prev_act.setShortcut(QKeySequence("↑"))
         prev_act.triggered.connect(self.prev)
         play_menu.addAction(prev_act)
 
         next_act = QAction("下一台", self)
-        next_act.setShortcut(QKeySequence("↓"))
         next_act.triggered.connect(self.next)
         play_menu.addAction(next_act)
 
         play_menu.addSeparator()
 
         rec_act = QAction("开始/停止录制", self)
-        rec_act.setShortcut(QKeySequence("Cmd+R"))
+        rec_act.setShortcut(QKeySequence("Ctrl+R"))
         rec_act.triggered.connect(self._toggle_record)
         play_menu.addAction(rec_act)
 
         play_menu.addSeparator()
 
         vol_up_act = QAction("音量增大", self)
-        vol_up_act.setShortcut(QKeySequence("Cmd+="))
+        vol_up_act.setShortcut(QKeySequence("Ctrl+="))
         vol_up_act.triggered.connect(lambda: self.vol_slider.setValue(self.vol_slider.value() + 5))
         play_menu.addAction(vol_up_act)
 
         vol_down_act = QAction("音量减小", self)
-        vol_down_act.setShortcut(QKeySequence("Cmd+-"))
+        vol_down_act.setShortcut(QKeySequence("Ctrl+-"))
         vol_down_act.triggered.connect(lambda: self.vol_slider.setValue(self.vol_slider.value() - 5))
         play_menu.addAction(vol_down_act)
 
@@ -2279,6 +2514,14 @@ class RadioWindow(QMainWindow):
         return f"{year_name}{month_str}{day_str}"
 
     # ---- 列表管理 ----
+    def _filter_radios(self, keyword):
+        """按关键字过滤电台列表显示（仅隐藏不匹配项，self.radios 索引不变）"""
+        keyword = (keyword or "").strip().lower()
+        for w in (self.list_widget, self.star_list_widget):
+            for i in range(w.count()):
+                item = w.item(i)
+                item.setHidden(bool(keyword) and keyword not in item.text().lower())
+
     def _refresh_list(self):
         """刷新列表显示（全部 + 星标台）：带序号，星标的电台带 ★ 前缀"""
         current = self.current_index
@@ -2300,6 +2543,8 @@ class RadioWindow(QMainWindow):
             si = self._starred_indices()
             if current in si:
                 self.star_list_widget.setCurrentRow(si.index(current))
+        # 刷新后重新应用搜索过滤
+        self._filter_radios(self.search_edit.text())
 
     # ---- 星标功能 ----
     def _starred_indices(self):
@@ -2935,10 +3180,24 @@ class RadioWindow(QMainWindow):
             self._stop_record()
             self.rec_timer_label.setText(self.rec_timer_label.text() + "\n（换台已停止录制）")
 
+        # 换台：停止上一个 ICY / status-json 线程，清空上次的节目显示
+        self._stop_icy_fetcher()
+        self._stop_status_fetcher()
+        self._icy_has_data = False
+        self._icy_program_text = ""
+        self.now_program_label.setText("")
+        self.now_program_label.setToolTip("")
+
         self.player.stop()
         self.player.setSource(QUrl(url))
         self.player.play()
         log.info("play: 已调用 setSource + play，当前 playbackState=%s", self.player.playbackState())
+
+        # 直连音频流（非 m3u8）：后台线程抓 ICY 元数据，实时显示节目
+        if not url.lower().split("?", 1)[0].endswith(".m3u8"):
+            self._start_icy_fetcher(url)
+        # 所有台都尝试 status-json（Icecast 托管的台，即使流内无元数据也能拿到节目）
+        self._start_status_fetcher(url)
 
         self.is_playing = True
         self.now_label.setText(f"🔊 {name}")
@@ -2978,6 +3237,9 @@ class RadioWindow(QMainWindow):
 
     def stop(self):
         self.player.stop()
+        self._stop_icy_fetcher()
+        self._stop_status_fetcher()
+        self._icy_program_text = ""
         self.is_playing = False
         self.now_label.setText("已停止")
         self.now_program_label.setText("")
@@ -2989,6 +3251,78 @@ class RadioWindow(QMainWindow):
             self.rec_timer_label.setText(self.rec_timer_label.text() + "\n（停止播放已结束录制）")
 
         self.media_int.clear()
+
+    # ---- ICY 元数据抓取线程 ----
+
+    def _start_icy_fetcher(self, url):
+        """启动 ICY 元数据抓取线程（仅直连音频流）"""
+        try:
+            self._icy_fetcher = IcyMetadataFetcher(url)
+            self._icy_fetcher.program_updated.connect(self._on_icy_program)
+            self._icy_fetcher.start()
+        except Exception:
+            self._icy_fetcher = None
+            log.warning("启动 ICY 元数据抓取失败: %s", url)
+
+    def _stop_icy_fetcher(self):
+        """停止 ICY 元数据抓取线程（换台 / 停止 / 退出时调用）"""
+        if self._icy_fetcher is None:
+            return
+        try:
+            self._icy_fetcher.program_updated.disconnect(self._on_icy_program)
+        except Exception:
+            pass
+        self._icy_fetcher.stop()
+        self._icy_fetcher = None
+
+    def _on_icy_program(self, text):
+        """ICY 元数据更新：把节目/曲目显示到界面并同步控制中心。"""
+        self._icy_has_data = True
+        self._icy_program_text = text
+        # 超长截断（工具提示放完整内容）
+        display = text
+        if len(display) > 60:
+            display = display[:58] + "…"
+        self.now_program_label.setText(display)
+        self.now_program_label.setToolTip(text)
+        if self.is_playing and self.current_index >= 0:
+            self._update_system_media()
+
+    # ---- status-json 节目信息抓取（兜底来源） ----
+
+    def _start_status_fetcher(self, url):
+        """启动 Icecast status-json 抓取线程（所有台都尝试一次）"""
+        try:
+            self._status_fetcher = IcecastStatusFetcher(url)
+            self._status_fetcher.program_updated.connect(self._on_status_program)
+            self._status_fetcher.start()
+        except Exception:
+            self._status_fetcher = None
+            log.warning("启动 status-json 抓取失败: %s", url)
+
+    def _stop_status_fetcher(self):
+        """停止 status-json 抓取线程（换台 / 停止 / 退出时调用）"""
+        if self._status_fetcher is None:
+            return
+        try:
+            self._status_fetcher.program_updated.disconnect(self._on_status_program)
+        except Exception:
+            pass
+        self._status_fetcher.stop()
+        self._status_fetcher = None
+
+    def _on_status_program(self, text):
+        """status-json 节目信息：作为 ICY 之外的兜底，不覆盖流内实时结果。"""
+        if self._icy_has_data:
+            return  # 已有更可靠的流内 ICY 元数据
+        self._icy_program_text = text
+        display = text
+        if len(display) > 60:
+            display = display[:58] + "…"
+        self.now_program_label.setText(display)
+        self.now_program_label.setToolTip(text)
+        if self.is_playing and self.current_index >= 0:
+            self._update_system_media()
 
     def _pool_indices(self):
         """当前换台范围内的索引列表（全部电台 或 星标台）"""
@@ -3058,25 +3392,35 @@ class RadioWindow(QMainWindow):
             return
         name, url = self.radios[self.current_index]
 
-        # 从元数据里取当前节目
-        from PyQt6.QtMultimedia import QMediaMetaData
-        md = self.player.metaData()
-        title = md.stringValue(QMediaMetaData.Key.Title)
-        artist = md.stringValue(QMediaMetaData.Key.ContributingArtist)
-
-        if title or artist:
-            # 有节目信息：标题 = 歌手 - 曲目（或单个），艺人 = 电台名
-            parts = []
-            if artist:
-                parts.append(artist)
-            if title and title != artist:
-                parts.append(title)
-            display_title = " — ".join(parts) if parts else (title or artist)
+        # 优先用自抓的 ICY 元数据（比 Qt 原生解析更可靠），其次 Qt 原生元数据
+        if self._icy_program_text:
+            icy = self._icy_program_text
+            # StreamTitle 常见格式「歌手 - 曲目」，拆开便于控制中心展示
+            if " - " in icy:
+                singer, _, track = icy.partition(" - ")
+                display_title = f"{singer} — {track}"
+            else:
+                display_title = icy
             display_artist = name
         else:
-            # 没有节目信息：维持原状，电台名作为标题
-            display_title = name
-            display_artist = "网络电台"
+            from PyQt6.QtMultimedia import QMediaMetaData
+            md = self.player.metaData()
+            title = md.stringValue(QMediaMetaData.Key.Title)
+            artist = md.stringValue(QMediaMetaData.Key.ContributingArtist)
+
+            if title or artist:
+                # 有节目信息：标题 = 歌手 - 曲目（或单个），艺人 = 电台名
+                parts = []
+                if artist:
+                    parts.append(artist)
+                if title and title != artist:
+                    parts.append(title)
+                display_title = " — ".join(parts) if parts else (title or artist)
+                display_artist = name
+            else:
+                # 没有节目信息：维持原状，电台名作为标题
+                display_title = name
+                display_artist = "网络电台"
 
         self.media_int.update_now_playing(
             title=display_title,
@@ -3104,6 +3448,10 @@ class RadioWindow(QMainWindow):
 
     def _on_meta_data_changed(self):
         """流媒体元数据更新（ICY 等），提取当前播放的节目信息并显示。"""
+        # 已通过 ICY 线程拿到节目信息的台，优先显示 ICY 结果，忽略 Qt 的空元数据
+        if self._icy_program_text:
+            return
+
         from PyQt6.QtMultimedia import QMediaMetaData
         md = self.player.metaData()
 
@@ -3310,6 +3658,8 @@ class RadioWindow(QMainWindow):
             if self.record_proc:
                 self._stop_record()
             self.player.stop()
+            self._stop_icy_fetcher()
+            self._stop_status_fetcher()
             self.media_int.clear()
             if hasattr(self, 'tray_icon') and self.tray_icon:
                 self.tray_icon.hide()
@@ -3322,6 +3672,8 @@ class RadioWindow(QMainWindow):
             if self.record_proc:
                 self._stop_record()
             self.player.stop()
+            self._stop_icy_fetcher()
+            self._stop_status_fetcher()
             self.media_int.clear()
             event.accept()
             return
@@ -3337,6 +3689,8 @@ class RadioWindow(QMainWindow):
             if self.record_proc:
                 self._stop_record()
             self.player.stop()
+            self._stop_icy_fetcher()
+            self._stop_status_fetcher()
             self.media_int.clear()
             self.tray_icon.hide()
             event.accept()
