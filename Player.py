@@ -28,7 +28,7 @@ from datetime import datetime
 # ============================================================
 
 APP_NAME = "网络电台"
-APP_VERSION = "1.0"
+APP_VERSION = "1.1"
 
 
 # ============================================================
@@ -720,10 +720,9 @@ class ImportDialog(QDialog):
         layout.addWidget(list_label)
 
         self.list_widget = QListWidget()
-        self.list_widget.setStyleSheet("""
-            QListWidget { font-size: 13px; }
-            QListWidget::item { padding: 4px 6px; }
-        """)
+        # 注意：不要给 ::item 写样式表——macOS 原生样式下会干扰每个 item 的复选框绘制，
+        # 表现为只有第一个台显示勾选框
+        self.list_widget.setStyleSheet("QListWidget { font-size: 13px; }")
         layout.addWidget(self.list_widget, stretch=1)
 
         # 全选/反选
@@ -813,6 +812,10 @@ class ImportDialog(QDialog):
         dup_count = 0
         for name, url in radios:
             item = QListWidgetItem(f"{name}")
+            # 显式声明可勾选，避免个别 macOS 样式下复选框不绘制
+            item.setFlags(Qt.ItemFlag.ItemIsSelectable
+                          | Qt.ItemFlag.ItemIsUserCheckable
+                          | Qt.ItemFlag.ItemIsEnabled)
             item.setToolTip(url)
             is_dup = url in self.existing_urls
             if is_dup:
