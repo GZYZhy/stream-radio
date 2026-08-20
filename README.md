@@ -1,6 +1,8 @@
 # 📻 网络电台
 
-一款极简的 macOS 网络电台播放器。基于 PyQt6 构建，界面简洁流畅，支持电台收藏、节目信息显示、录制和 macOS 系统媒体集成。
+一款极简的网络电台播放器，提供 **macOS**（PyQt6）与 **iOS**（SwiftUI）两个版本，界面简洁流畅，支持电台收藏、节目信息显示、系统媒体集成等功能。
+
+> macOS 版额外支持录制、托盘、农历时钟等桌面端功能；iOS 版支持后台播放、控制中心与悬浮球，见下方「iOS 版本」。
 
 ## 功能特性
 
@@ -65,14 +67,46 @@ python3 build_app.py --sign-auto   # 用开发者证书重新签名
 ├── app_icon.svg       # 图标源文件
 ├── app_icon.icns      # 打包用图标
 ├── requirements.txt   # 依赖清单
+├── ios/               # iOS 版工程（SwiftUI）
+│   └── stream-radio/  #   Xcode 工程（stream-radio.xcodeproj）+ 源码
 └── LICENSE            # MIT 许可证
 ```
 
+## iOS 版本
+
+原生 SwiftUI 版，支持 iPhone / iPad（iOS 17+）。
+
+### 功能特性
+
+- **电台列表 + 搜索**：内置台与 `radio.m3u` 保持一致；支持搜索筛选
+- **播放页**：节目信息、标星收藏、控制中心集成（媒体键 + 锁屏星标）
+- **导入 m3u**：导入前可勾选要导入的台，按 URL 去重，稳健解析"不太干净"的 m3u
+- **订阅**：定时刷新订阅列表，支持启动时自动同步（默认关闭）
+- **失败台管理**：一键删除全部连接失败的台，列表项左滑可单个删除
+- **悬浮球**：播放页收起后最小化为右下角小圆球，点击重新打开
+- **后台播放**：锁屏 / 切后台继续播放；支持 http 明文流源
+
+### 构建运行
+
+```bash
+open ios/stream-radio/stream-radio.xcodeproj
+```
+
+在 Xcode 中选择 `stream-radio` scheme，选中真机或模拟器后 ⌘R 构建运行。
+
+> 使用免费 Apple ID 签名时，App 每 7 天过期，需重新用 Xcode 构建安装一次；付费开发者账号有效期为 1 年。
+
 ## 技术栈
 
+**macOS 版**
 - [PyQt6](https://www.riverbankcomputing.com/software/pyqt/) + QtMultimedia（FFmpeg 后端）
 - pyobjc（macOS 系统通知 / 控制中心 / 媒体键）
 - PyInstaller（打包）
+
+**iOS 版**
+- SwiftUI + AVFoundation（音频播放）
+- MediaPlayer 框架（控制中心、锁屏信息、媒体键）
+- Xcode 工程，文件夹同步管理源码
 
 ## 许可证
 
