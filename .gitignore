@@ -1,6 +1,12 @@
 # macOS
 .DS_Store
 
+# iOS / Xcode 工程
+xcuserdata/
+**/xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
 # 本项目的构建与数据目录
 build_app/
 recordings/
