@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Environment(StationStore.self) private var store
 
     @AppStorage("appearanceMode") private var appearanceMode = "system"
+    @AppStorage("autoSyncOnLaunch") private var autoSyncOnLaunch = false
     @State private var showAddSub = false
     @State private var subName = ""
     @State private var subURL = ""
@@ -25,6 +26,7 @@ struct SettingsView: View {
             }
 
             Section("订阅") {
+                Toggle("启动时自动同步", isOn: $autoSyncOnLaunch)
                 if store.subscriptions.isEmpty {
                     Text("暂无订阅。添加 m3u 链接后，用下方按钮手动同步拉取电台（按播放链接去重）。")
                         .foregroundStyle(.secondary)
@@ -68,9 +70,16 @@ struct SettingsView: View {
                     ProgressView()
                 } else if !checkResults.isEmpty {
                     let ok = checkResults.values.filter(\.ok).count
-                    let fail = checkResults.values.filter { !$0.ok }
-                    Text("可播 \(ok) 个，失败 \(fail.count) 个")
-                    ForEach(Array(checkResults.filter { !$0.value.ok }), id: \.key) { url, result in
+                    let fail = Array(checkResults.filter { !$0.value.ok })
+                    HStack {
+                        Text("可播 \(ok) 个，失败 \(fail.count) 个")
+                        Spacer()
+                        if !fail.isEmpty {
+                            Button("删除全部失败", role: .destructive) { deleteAllFailed() }
+                                .font(.caption)
+                        }
+                    }
+                    ForEach(fail, id: \.key) { url, result in
                         HStack {
                             Text(store.stations.first { $0.url == url }?.name ?? url)
                                 .lineLimit(1)
@@ -78,6 +87,9 @@ struct SettingsView: View {
                             Text(result.message ?? "失败")
                                 .font(.caption)
                                 .foregroundStyle(.red)
+                        }
+                        .swipeActions(edge: .trailing) {
+                            Button("从列表删除", role: .destructive) { deleteFailed(url) }
                         }
                     }
                 }
@@ -122,6 +134,19 @@ struct SettingsView: View {
         }
         checking = false
     }
+
+    /// 左划删除单个失败电台
+    private func deleteFailed(_ url: String) {
+        store.remove(store.stations.filter { $0.url == url })
+        checkResults.removeValue(forKey: url)
+    }
+
+    /// 一键删除全部失败电台
+    private func deleteAllFailed() {
+        let failedURLs = Set(checkResults.filter { !$0.value.ok }.keys)
+        store.remove(store.stations.filter { failedURLs.contains($0.url) })
+        checkResults = checkResults.filter { !failedURLs.contains($0.key) }
+    }
 }
 
 // 关于页：应用图标 + 信息（图标资源在 Assets 的 app-icon）
@@ -137,7 +162,7 @@ struct AboutView: View {
                         .padding(.top, 28)
                     Text("网络电台")
                         .font(.title2.bold())
-                    Text("版本 1.1 (iOS)")
+                    Text("版本 1.2 (iOS)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Text("MIT License")

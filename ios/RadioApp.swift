@@ -6,6 +6,7 @@ struct RadioApp: App {
     @State private var store = StationStore()
     @State private var player = PlayerManager()
     @AppStorage("appearanceMode") private var appearanceMode = "system"
+    @AppStorage("autoSyncOnLaunch") private var autoSyncOnLaunch = false
 
     var body: some Scene {
         WindowGroup {
@@ -17,6 +18,10 @@ struct RadioApp: App {
                 .onAppear {
                     player.stationProvider = { store.stations }
                     player.favoriteToggler = { station in store.toggleFavorite(station) }
+                    // 启动时自动同步订阅（默认关闭，由「设置→订阅」开关控制）
+                    if autoSyncOnLaunch {
+                        Task { await store.syncAllSubscriptions() }
+                    }
                 }
         }
     }

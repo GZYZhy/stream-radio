@@ -141,6 +141,8 @@ def step_build(has_pyobjc, has_notif):
     app_path = os.path.join(DIST_DIR, APP_BUNDLE)
     if not os.path.exists(app_path):
         raise RuntimeError(f"未找到生成的 app: {app_path}")
+    # PyInstaller 默认版本是 0.0.0，需写回真实版本号并重新 ad-hoc 签名
+    _set_bundle_version(app_path)
 
     # 计算大小
     size_mb = 0
@@ -262,6 +264,28 @@ def step_sign(app_path, sign_mode):
     return identity
 
 
+def _set_bundle_version(app_path):
+    """把版本号写入 .app/Contents/Info.plist 并重新 ad-hoc 签名。
+
+    PyInstaller 生成的 CFBundleShortVersionString 默认是 0.0.0，
+    这里从 Player.py 的 APP_VERSION 读取，避免两处维护版本号。
+    """
+    import plistlib
+    import re
+    with open(os.path.join(PROJECT_DIR, "Player.py"), encoding="utf-8") as f:
+        m = re.search(r'APP_VERSION\s*=\s*"([^"]+)"', f.read())
+    version = m.group(1) if m else "1.0"
+    plist_path = os.path.join(app_path, "Contents", "Info.plist")
+    with open(plist_path, "rb") as f:
+        plist = plistlib.load(f)
+    plist["CFBundleShortVersionString"] = version
+    plist["CFBundleVersion"] = version
+    with open(plist_path, "wb") as f:
+        plistlib.dump(plist, f)
+    # Info.plist 被改动后 PyInstaller 的签名失效，需重新 ad-hoc 签名
+    run(["codesign", "--force", "--sign", "-", app_path])
+
+
 def _entitlements_path():
     """生成 entitlements 文件（Hardened Runtime 权限声明）"""
     path = os.path.join(BUILD_DIR, "RadioPlayer.entitlements")
@@ -283,9 +307,9 @@ def _entitlements_path():
     <key>CFBundleIdentifier</key>
     <string>cn.zdeweb.app-stream-radio</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.1</string>
+    <string>1.2</string>
     <key>CFBundleVersion</key>
-    <string>1.1</string>
+    <string>1.2</string>
 </dict>
 </plist>
 """

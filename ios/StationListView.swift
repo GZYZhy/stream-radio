@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import UIKit
 
 // 侧边栏导航项
 enum SidebarSection: Hashable {
@@ -9,9 +10,12 @@ enum SidebarSection: Hashable {
 // 根容器：侧边栏导航（iPad 双栏，iPhone 自动折叠）
 struct RootView: View {
     @State private var selection: SidebarSection? = .all
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    @State private var columnVisibility: NavigationSplitViewVisibility = .detailOnly
+    @State private var showingPlayer = false
 
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             List(selection: $selection) {
                 Section("电台") {
                     Label("全部电台", systemImage: "radio").tag(SidebarSection.all)
@@ -26,12 +30,50 @@ struct RootView: View {
             .navigationTitle("网络电台")
         } detail: {
             switch selection ?? .all {
-            case .all: StationListView()
-            case .favorites: FavoriteListView()
+            case .all: StationListView(showingPlayer: $showingPlayer)
+            case .favorites: FavoriteListView(showingPlayer: $showingPlayer)
             case .settings: SettingsView()
             case .help: HelpView()
             case .about: AboutView()
             }
+        }
+        .onAppear { updateColumnVisibility() }
+        .onChange(of: sizeClass) { _, _ in updateColumnVisibility() }
+        .sheet(isPresented: $showingPlayer) { NowPlayingView() }
+    }
+
+    /// iPad 横屏常驻侧边栏；iPad 竖屏与 iPhone 保持折叠（和手机一致）
+    private func updateColumnVisibility() {
+        let isIPad = UIDevice.current.userInterfaceIdiom == .pad
+        columnVisibility = (isIPad && sizeClass == .regular) ? .all : .detailOnly
+    }
+}
+
+// 迷你播放悬浮球：右下角常驻小圆球，点击重新打开播放页
+// 搜索激活时自动隐藏，避免遮挡搜索框的取消按钮
+struct MiniPlayerBubble: View {
+    @Environment(PlayerManager.self) private var player
+    @Environment(\.isSearching) private var isSearching
+    let onTap: () -> Void
+
+    var body: some View {
+        if isSearching {
+            EmptyView()
+        } else {
+            Button(action: onTap) {
+                ZStack {
+                    Circle()
+                        .fill(.ultraThinMaterial)
+                        .frame(width: 56, height: 56)
+                        .shadow(color: .black.opacity(0.2), radius: 6, y: 3)
+                    Image(systemName: player.isPlaying ? "waveform" : "play.fill")
+                        .font(.title3)
+                        .foregroundStyle(.blue)
+                }
+            }
+            .buttonStyle(.plain)
+            .padding(.trailing, 16)
+            .padding(.bottom, 16)
         }
     }
 }
@@ -43,8 +85,10 @@ struct StationListView: View {
 
     @State private var searchText = ""
     @State private var showingImport = false
+    @State private var importCandidates: [Station] = []
+    @State private var showingImportPreview = false
     @State private var showingAdd = false
-    @State private var showingPlayer = false
+    @Binding var showingPlayer: Bool
     @State private var newName = ""
     @State private var newURL = ""
     @State private var editingStation: Station?
@@ -104,7 +148,17 @@ struct StationListView: View {
                       allowedContentTypes: [.plainText, .item]) { result in
             importM3U(from: result)
         }
-        .sheet(isPresented: $showingPlayer) { NowPlayingView() }
+        .sheet(isPresented: $showingImportPreview) {
+            ImportPreviewView(candidates: importCandidates, store: store) { chosen in
+                store.importSelected(chosen)
+            }
+        }
+        // 右下角迷你悬浮球（搜索激活时自动隐藏）
+        .overlay(alignment: .bottomTrailing) {
+            if player.currentStation != nil {
+                MiniPlayerBubble { showingPlayer = true }
+            }
+        }
     }
 
     private func playAndShow(_ station: Station) {
@@ -133,9 +187,85 @@ struct StationListView: View {
         guard case .success(let url) = result else { return }
         let accessing = url.startAccessingSecurityScopedResource()
         defer { if accessing { url.stopAccessingSecurityScopedResource() } }
-        if let text = try? String(contentsOf: url, encoding: .utf8) {
-            store.importM3U(text)
+        // UTF-8 优先，latin1 兜底（部分文件是其他编码）
+        guard let data = try? Data(contentsOf: url),
+              let text = String(data: data, encoding: .utf8)
+                   ?? String(data: data, encoding: .isoLatin1) else { return }
+        importCandidates = StationStore.parseM3U(text)
+        showingImportPreview = true
+    }
+}
+
+// 导入预览：勾选要导入的台（与已存在 URL 重复的默认跳过）
+struct ImportPreviewView: View {
+    let candidates: [Station]
+    let onImport: ([Station]) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var selected: Set<UUID>
+    /// 已存在（URL 与当前列表重复）的台
+    private let existingURLs: Set<String>
+
+    init(candidates: [Station], store: StationStore, onImport: @escaping ([Station]) -> Void) {
+        self.candidates = candidates
+        self.onImport = onImport
+        let existing = Set(store.stations.map(\.url))
+        self.existingURLs = existing
+        // 默认勾选所有可导入的台
+        _selected = State(initialValue: Set(candidates.filter { !existing.contains($0.url) }.map(\.id)))
+    }
+
+    private var checkedCount: Int { selected.count }
+    private var duplicateCount: Int { candidates.filter { existingURLs.contains($0.url) }.count }
+    private var importableCount: Int { candidates.count - duplicateCount }
+
+    var body: some View {
+        NavigationStack {
+            List(candidates) { station in
+                HStack {
+                    Toggle("", isOn: Binding(
+                        get: { selected.contains(station.id) },
+                        set: { on in
+                            if on { selected.insert(station.id) } else { selected.remove(station.id) }
+                        }
+                    ))
+                    .labelsHidden()
+                    .disabled(existingURLs.contains(station.url))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(station.name)
+                        Text(station.url)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    if existingURLs.contains(station.url) {
+                        Text("已存在")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .navigationTitle("选择要导入的台")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("取消") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("导入 (\(checkedCount))") {
+                        onImport(candidates.filter { selected.contains($0.id) })
+                        dismiss()
+                    }
+                    .disabled(checkedCount == 0)
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                Text("共 \(candidates.count) 个，可导入 \(importableCount) 个，重复 \(duplicateCount) 个")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .padding()
+            }
         }
+        .presentationDetents([.medium, .large])
     }
 }
 
@@ -144,7 +274,7 @@ struct FavoriteListView: View {
     @Environment(StationStore.self) private var store
     @Environment(PlayerManager.self) private var player
 
-    @State private var showingPlayer = false
+    @Binding var showingPlayer: Bool
     @State private var editingStation: Station?
     @State private var showEdit = false
     @State private var editName = ""
@@ -184,7 +314,12 @@ struct FavoriteListView: View {
             Button("保存") { store.update(station, name: editName, url: editURL) }
                 .disabled(editName.trimmingCharacters(in: .whitespaces).isEmpty)
         }
-        .sheet(isPresented: $showingPlayer) { NowPlayingView() }
+        // 右下角迷你悬浮球
+        .overlay(alignment: .bottomTrailing) {
+            if player.currentStation != nil {
+                MiniPlayerBubble { showingPlayer = true }
+            }
+        }
     }
 
     private func startEditing(_ station: Station) {

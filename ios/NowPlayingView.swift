@@ -6,6 +6,14 @@ struct NowPlayingView: View {
     @Environment(PlayerManager.self) private var player
     @Environment(\.dismiss) private var dismiss
 
+    /// 日期时间格式：中文、含秒，用于播放页时钟
+    private static let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "zh_CN")
+        f.dateFormat = "yyyy年M月d日 HH:mm:ss"
+        return f
+    }()
+
     var body: some View {
         VStack(spacing: 20) {
             HStack {
@@ -25,6 +33,13 @@ struct NowPlayingView: View {
                 .font(.headline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+            // 当前日期时间（每秒刷新）
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                Text(Self.timeFormatter.string(from: context.date))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
             if let error = player.errorMessage {
                 Text(error)
                     .font(.caption)
@@ -44,6 +59,20 @@ struct NowPlayingView: View {
                 }
             }
             .tint(.primary)
+            // 标星/取消标星当前台（星形状态实时反映仓库最新收藏）
+            if let station = player.currentStation {
+                let isFavorite = store.stations.first { $0.url == station.url }?.isFavorite ?? false
+                Button {
+                    store.toggleFavorite(station)
+                    player.refreshBookmarkState()
+                } label: {
+                    Label(isFavorite ? "已标星" : "标星",
+                          systemImage: isFavorite ? "star.fill" : "star")
+                        .font(.headline)
+                        .foregroundStyle(isFavorite ? .yellow : .secondary)
+                }
+                .padding(.top, 8)
+            }
             Spacer()
         }
         .padding()

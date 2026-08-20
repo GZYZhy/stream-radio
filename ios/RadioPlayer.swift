@@ -32,7 +32,13 @@ final class PlayerManager {
     func configureAudioSession() {
         let session = AVAudioSession.sharedInstance()
         try? session.setCategory(.playback, mode: .default)
-        try? session.setActive(true)
+        // 异步激活会话，避免同步 API 在主线程阻塞（可能引起启动卡顿）；
+        // iOS 27+ 用新异步 API，低版本回退同步 setActive
+        if #available(iOS 27, *) {
+            session.activate(options: []) { _, _ in }
+        } else {
+            try? session.setActive(true)
+        }
     }
 
     func play(_ station: Station) {
@@ -87,7 +93,10 @@ final class PlayerManager {
         } else if currentStation != nil {
             player.play()
             isPlaying = true
+        } else {
+            return
         }
+        updateNowPlaying()  // 同步播放速率到控制中心
     }
 
     func stop() {
@@ -122,7 +131,11 @@ final class PlayerManager {
     /// 同步信息到锁屏 / 控制中心；封面使用应用图标
     private func updateNowPlaying() {
         guard let currentStation else { return }
-        var info: [String: Any] = [MPMediaItemPropertyArtwork: Self.artwork]
+        var info: [String: Any] = [
+            MPMediaItemPropertyArtwork: Self.artwork,
+            // 系统据此推断播放/暂停状态，影响锁屏控制按钮的显示
+            MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0,
+        ]
         if let programTitle, !programTitle.isEmpty {
             // 有节目单：标题=节目，艺术家=电台
             info[MPMediaItemPropertyTitle] = programTitle
@@ -136,14 +149,20 @@ final class PlayerManager {
         refreshBookmarkState()
     }
 
-    /// 刷新控制中心星标按钮的实心/空心状态
-    private func refreshBookmarkState() {
-        MPRemoteCommandCenter.shared().bookmarkCommand.isActive = currentStation?.isFavorite ?? false
+    /// 刷新收藏按钮的实心/空心状态
+    /// currentStation 是值副本，收藏状态需从仓库按 URL 取最新值
+    func refreshBookmarkState() {
+        guard let cur = currentStation else {
+            MPRemoteCommandCenter.shared().likeCommand.isActive = false
+            return
+        }
+        let live = stationProvider?().first { $0.url == cur.url } ?? cur
+        MPRemoteCommandCenter.shared().likeCommand.isActive = live.isFavorite
     }
 
     /// 应用图标封面（来自 Assets 的 app-icon）
     private static let artwork: MPMediaItemArtwork = {
-        MPMediaItemArtwork(boundsSize: CGSize(width: 512, height: 512)) { _ in
+        MPMediaItemArtwork(boundsSize: CGSize(width: 1024, height: 1024)) { _ in
             UIImage(named: "app-icon") ?? UIImage(systemName: "radio")!
         }
     }()
@@ -165,6 +184,7 @@ final class PlayerManager {
             Task { @MainActor in
                 me?.player.pause()
                 me?.isPlaying = false
+                me?.updateNowPlaying()
             }
             return .success
         }
@@ -183,13 +203,13 @@ final class PlayerManager {
             Task { @MainActor in me?.remotePrevious() }
             return .success
         }
-        // 星标（收藏）：锁屏/控制中心的星形按钮，实心=已收藏
-        center.bookmarkCommand.addTarget { [weak self] _ in
+        // 收藏（like）：锁屏/控制中心的收藏按钮，本系统渲染为星形（与网易云一致）
+        center.likeCommand.addTarget { [weak self] _ in
             let me = self
             Task { @MainActor in me?.toggleFavoriteFromRemote() }
             return .success
         }
-        center.bookmarkCommand.isActive = false
+        center.likeCommand.isActive = false
     }
 
     /// 控制中心「标星」：切换当前台收藏并刷新按钮状态

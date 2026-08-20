@@ -28,7 +28,7 @@ from datetime import datetime
 # ============================================================
 
 APP_NAME = "网络电台"
-APP_VERSION = "1.1"
+APP_VERSION = "1.2"
 
 
 # ============================================================
@@ -86,7 +86,7 @@ from PyQt6.QtWidgets import (
     QGroupBox, QMessageBox, QInputDialog, QFileDialog, QMenuBar,
     QMenu, QDialog, QTabWidget, QCheckBox, QSpinBox, QProgressBar,
     QSystemTrayIcon, QLineEdit, QComboBox, QFrame, QTextEdit, QPlainTextEdit,
-    QDialogButtonBox, QFormLayout,
+    QDialogButtonBox, QFormLayout, QAbstractItemView, QStyleFactory,
 )
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtGui import QAction, QKeySequence, QIcon, QShortcut, QColor
@@ -720,9 +720,13 @@ class ImportDialog(QDialog):
         layout.addWidget(list_label)
 
         self.list_widget = QListWidget()
-        # 注意：不要给 ::item 写样式表——macOS 原生样式下会干扰每个 item 的复选框绘制，
-        # 表现为只有第一个台显示勾选框
+        # macOS 原生样式下 QListWidget 复选框渲染不可靠（只显示第一个框等），
+        # 改用 Fusion 样式兜底；也不要给 ::item 写样式表（同样会干扰复选框绘制）
+        self.list_widget.setStyle(QStyleFactory.create("Fusion"))
         self.list_widget.setStyleSheet("QListWidget { font-size: 13px; }")
+        # 不启用行选中（避免标蓝后要点两次取消），勾选靠复选框，变化实时刷新统计
+        self.list_widget.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        self.list_widget.itemChanged.connect(self._update_stat)
         layout.addWidget(self.list_widget, stretch=1)
 
         # 全选/反选
@@ -812,28 +816,25 @@ class ImportDialog(QDialog):
         dup_count = 0
         for name, url in radios:
             item = QListWidgetItem(f"{name}")
-            # 显式声明可勾选，避免个别 macOS 样式下复选框不绘制
-            item.setFlags(Qt.ItemFlag.ItemIsSelectable
-                          | Qt.ItemFlag.ItemIsUserCheckable
-                          | Qt.ItemFlag.ItemIsEnabled)
             item.setToolTip(url)
             is_dup = url in self.existing_urls
             if is_dup:
+                # 重复台不可勾选（默认跳过），只显示灰色提示
                 dup_count += 1
-                item.setCheckState(Qt.CheckState.Unchecked)
+                item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
                 item.setForeground(Qt.GlobalColor.gray)
                 item.setText(f"{name}  （已存在，跳过）")
             else:
+                # 显式声明可勾选，避免个别 macOS 样式下复选框不绘制
+                item.setFlags(Qt.ItemFlag.ItemIsSelectable
+                              | Qt.ItemFlag.ItemIsUserCheckable
+                              | Qt.ItemFlag.ItemIsEnabled)
                 item.setCheckState(Qt.CheckState.Checked)
-
             self.list_widget.addItem(item)
 
         self.import_btn.setEnabled(len(radios) > 0)
-        self.stat_label.setText(
-            f"共 {len(radios)} 个电台，"
-            f"已选 {self._checked_count()} 个，"
-            f"重复 {dup_count} 个（默认跳过）"
-        )
+        self.dup_count = dup_count
+        self._update_stat()
 
     def _checked_count(self):
         count = 0
@@ -861,10 +862,12 @@ class ImportDialog(QDialog):
                 item.setCheckState(Qt.CheckState.Checked)
         self._update_stat()
 
-    def _update_stat(self):
+    def _update_stat(self, *_args):
+        """刷新底部统计（勾选变化时由 itemChanged 触发）"""
         checked = self._checked_count()
-        total = self.list_widget.count()
-        self.stat_label.setText(f"共 {total} 个电台，已选 {checked} 个")
+        total = len(getattr(self, "current_radios", []))
+        dup = getattr(self, "dup_count", 0)
+        self.stat_label.setText(f"共 {total} 个电台，已选 {checked} 个，重复 {dup} 个（默认跳过）")
 
     # ---- 结果 ----
     def get_selected_radios(self):

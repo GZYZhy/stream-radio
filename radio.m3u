@@ -1,8 +1,8 @@
 #EXTM3U
-#Update: 2026-08-20 22:21:06
-#EXTINF:-1,n p r | WOSU
-http://wosu.streamguys1.com/NPR_256
 #EXTINF:-1,CCTV-1
 https://piccpndali.v.myalicdn.com/audio/cctv1_2.m3u8
-#EXTINF:-1,958
-https://19183.live.streamtheworld.com/CAPITAL958FM_PREM.aac
+#EXTINF:-1,CCTV-13
+https://piccpndali.v.myalicdn.com/audio/cctv13_2.m3u8
+#EXTINF:-1,CNR 中国之声
+https://ngcdn001.cnr.cn/live/zgzs/index.m3u8
+

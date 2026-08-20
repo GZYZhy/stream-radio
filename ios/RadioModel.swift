@@ -49,9 +49,13 @@ final class StationStore {
         save()
     }
 
-    /// 解析 m3u 文本并批量添加（用于从文件导入）
-    func importM3U(_ text: String) {
-        stations.append(contentsOf: Self.parseM3U(text))
+    /// 批量导入已选择的电台（按 URL 去重，重复的跳过）
+    func importSelected(_ stations: [Station]) {
+        var urls = existingURLs
+        for s in stations where !urls.contains(s.url) {
+            urls.insert(s.url)
+            self.stations.append(s)
+        }
         save()
     }
 
@@ -91,7 +95,10 @@ final class StationStore {
     // ---- 订阅 ----
 
     func addSubscription(name: String, url: String) {
-        subscriptions.append(Subscription(name: name, url: url))
+        let trimmed = url.trimmingCharacters(in: .whitespaces)
+        // 相同链接的订阅不重复添加
+        guard !subscriptions.contains(where: { $0.url == trimmed }) else { return }
+        subscriptions.append(Subscription(name: name, url: trimmed))
         saveSubscriptions()
     }
 
@@ -146,21 +153,25 @@ final class StationStore {
 
     // ---- m3u 解析（与 macOS 版 load_radios 一致的宽松逻辑） ----
 
-    /// 内置示例电台
+    /// 内置示例电台（与 radio.m3u 保持一致）
     static let builtin: [Station] = [
-        Station(name: "n p r | WOSU", url: "http://wosu.streamguys1.com/NPR_256"),
-        Station(name: "958（新加坡中文台）", url: "https://19183.live.streamtheworld.com/CAPITAL958FM_PREM.aac"),
-        Station(name: "CCTV-1 伴音（HLS）", url: "https://piccpndali.v.myalicdn.com/audio/cctv1_2.m3u8"),
+        Station(name: "CCTV-1", url: "https://piccpndali.v.myalicdn.com/audio/cctv1_2.m3u8"),
+        Station(name: "CCTV-13", url: "https://piccpndali.v.myalicdn.com/audio/cctv13_2.m3u8"),
+        Station(name: "CNR 中国之声", url: "https://ngcdn001.cnr.cn/live/zgzs/index.m3u8"),
     ]
 
     /// 解析 m3u 文本，兼容带 tvg-* / group-title 等扩展属性的脏格式：
-    /// - #EXTINF 行频道名取最后一个逗号之后
-    /// - #EXTM3U / #Update: / 其他 # 注释行跳过
+    /// - #EXTINF 行频道名取最后一个逗号之后（属性里的逗号不影响）
+    /// - #EXTM3U / #Update: / #EXTGRP: 等 # 注释行跳过
     /// - 裸地址行没有名称时回退为 URL 文件名
+    /// - 自动去 BOM、去地址首尾引号、过滤非 http(s) 行、按 URL 去重
     static func parseM3U(_ text: String) -> [Station] {
         var result: [Station] = []
         var pendingName: String?
-        for raw in text.components(separatedBy: .newlines) {
+        var seen: Set<String> = []
+        // 去掉 BOM（部分文件头带 \u{FEFF}）
+        let cleaned = text.replacingOccurrences(of: "\u{FEFF}", with: "")
+        for raw in cleaned.components(separatedBy: .newlines) {
             let line = raw.trimmingCharacters(in: .whitespaces)
             if line.isEmpty { continue }
             let upper = line.uppercased()
@@ -175,11 +186,15 @@ final class StationStore {
             } else if line.hasPrefix("#") {
                 continue
             } else {
-                if !line.isEmpty {
-                    let name = pendingName ?? Self.fallbackName(for: line)
-                    result.append(Station(name: name, url: line))
-                    pendingName = nil
-                }
+                // 地址行：去掉首尾引号，仅接受 http(s)，过滤残留文本行与重复地址
+                let url = line.trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+                let lower = url.lowercased()
+                guard lower.hasPrefix("http://") || lower.hasPrefix("https://"),
+                      !seen.contains(url) else { continue }
+                seen.insert(url)
+                let name = pendingName ?? Self.fallbackName(for: url)
+                result.append(Station(name: name, url: url))
+                pendingName = nil
             }
         }
         return result
