@@ -1,36 +1,45 @@
 # 网络电台（iOS / iPadOS 版）
 
-macOS 版（PyQt6）的 SwiftUI 原生移植，**砍掉了录制、自定义 UA、订阅刷新、连通性检查**，只保留核心体验：电台列表 + 搜索 + 播放 + 节目信息 + 星标 + 锁屏控制中心。
+macOS 版（PyQt6）的 SwiftUI 原生移植。仓库内已含完整 Xcode 工程，直接用 Xcode 打开即可构建运行。
+
+## 功能特性
+
+- **电台列表 + 搜索**：内置台与根目录 `radio.m3u` 保持一致（CCTV-1 / CCTV-13 / CNR 中国之声）
+- **播放页**：节目信息（ICY 元数据）、标星收藏、控制中心集成（媒体键 + 锁屏星标）
+- **导入 m3u**：导入前可勾选要导入的台，按 URL 去重，稳健解析"不太干净"的 m3u
+- **订阅**：定时刷新订阅列表，支持启动时自动同步（默认关闭）
+- **失败台管理**：一键删除全部连接失败的台，列表项左滑可单个删除
+- **悬浮球**：播放页收起后最小化为右下角小圆球，点击重新打开
+- **后台播放**：锁屏 / 切后台继续播放；支持 http 明文流源
+- 版本 1.2，支持 iPhone / iPad（iOS 17+）
+
+## 构建运行
+
+```bash
+open stream-radio/stream-radio.xcodeproj
+```
+
+Xcode 中选择 `stream-radio` scheme，选中真机或模拟器后 ⌘R 构建运行。
+
+> 免费 Apple ID 签名：App 每 7 天过期，需重新用 Xcode 构建安装一次。上架 App Store 需付费开发者账号（每年 ¥688）。
 
 ## 文件
 
-| 文件 | 作用 |
+| 路径 | 作用 |
 | --- | --- |
-| `RadioApp.swift` | App 入口，注入数据 |
-| `RadioModel.swift` | 电台模型 + m3u 解析 + UserDefaults 持久化 |
-| `RadioPlayer.swift` | AVPlayer 封装、ICY 节目信息、后台播放、锁屏信息 |
-| `StationListView.swift` | 列表、搜索、星标、添加、导入 m3u |
-| `NowPlayingView.swift` | 正在播放界面 |
-
-## 用 Xcode 跑起来（约 3 分钟）
-
-1. **Xcode → File → New → Project → iOS App**
-   - Product Name 随意（如 `Radio`），Interface 选 **SwiftUI**，Language 选 **Swift**，去掉所有勾选框（Core Data 等都不用）。
-2. 把本目录的 4 个 `.swift` 文件**全部拖进**工程（替换自带的 `ContentView.swift`）。
-3. 配置两个 Info.plist（Xcode 15+ 可在 TARGETS → Info 标签加）：
-   - **后台播放**：`UIBackgroundModes` → 数组加 `audio`
-   - **允许 http 电台**：`App Transport Security` → `NSAllowsArbitraryLoads = YES`（很多电台是 http 流，不开会被 ATS 拦截）
-4. 选择你的 **Team**（免费 Apple ID 即可，签名用 Automatic），选一台设备或模拟器，Cmd+R 运行。
+| `stream-radio/stream-radio.xcodeproj/` | Xcode 工程（scheme 为 stream-radio） |
+| `stream-radio/stream-radio/RadioApp.swift` | App 入口，注入数据、启动自动同步订阅 |
+| `stream-radio/stream-radio/RadioModel.swift` | 电台模型 + m3u 解析 + 订阅 + 持久化 |
+| `stream-radio/stream-radio/RadioPlayer.swift` | AVPlayer 封装、后台播放、锁屏信息 |
+| `stream-radio/stream-radio/StationListView.swift` | 列表、搜索、悬浮球、导入 m3u |
+| `stream-radio/stream-radio/NowPlayingView.swift` | 正在播放界面、标星按钮 |
+| `stream-radio/stream-radio/SettingsView.swift` | 设置：订阅、失败台管理、关于 |
+| `stream-radio/stream-radio/Info.plist` | 后台音频、http 放行（ATS）、启动屏、图标 |
+| `stream-radio/stream-radio/Assets.xcassets/` | App 图标资源 |
 
 ## 说明
 
-- 目标平台 **iOS / iPadOS 17+**（使用了 `@Observable` 与 `@Environment` 新 API）。
-- 节目信息来自 **ICY 流内元数据**（`AVPlayerItem.timedMetadata`，2 秒轮询）。支持 ICY 的电台会显示「歌手 - 曲目」；HLS 台和少数不返回元数据的台只显示站名，属正常现象。
-- 播放器请求头内置了干净 UA 与 `Icy-MetaData: 1`，**没有**用户自定义 UA 入口。
+- 节目信息来自 **ICY 流内元数据**（`AVPlayerItem.timedMetadata`）。支持 ICY 的电台显示「歌手 - 曲目」；HLS 台和少数不返回元数据的台只显示站名，属正常现象。
+- 播放器请求头内置了干净 UA 与 `Icy-MetaData: 1`。
 - 首页「+」可手动添加单个电台；「⇩」可从「文件」App 导入 `.m3u` 播放列表。
-- 上架 App Store 需要付费开发者账号（每年 ¥688）；用免费账号只能跑真机/模拟器，App 一周内会过期，需重新安装。
-
-## 想继续扩展？
-
-- **更可靠的节目信息**：可再加 Icecast `/status-json.xsl` 兜底（`URLSession` + `listenurl` 匹配），逻辑参考 macOS 版 `Player.py` 的 `IcecastStatusFetcher`。
-- **收藏夹独立页签**：`Station.isFavorite` 已就位，加一个 `List` 过滤即可。
+- 完整双平台说明见仓库根目录 `README.md`。
