@@ -174,7 +174,9 @@ struct AboutView: View {
             }
             .listRowBackground(Color.clear)
             Section("信息") {
-                LabeledContent("作者", value: "GZYZhy")
+                LabeledContent("作者") {
+                    Link("GZYZhy", destination: URL(string: "https://www.zdeweb.cn")!)
+                }
                 Link(destination: URL(string: "https://github.com/GZYZhy/stream-radio")!) {
                     Label("GitHub 仓库", systemImage: "link")
                 }
