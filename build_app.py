@@ -283,6 +283,22 @@ def _set_bundle_version(app_path):
     with open(plist_path, "wb") as f:
         plistlib.dump(plist, f)
     # Info.plist 被改动后 PyInstaller 的签名失效，需重新 ad-hoc 签名
+    # 先剥离资源分叉（PyInstaller 产物可能带 detritus），否则 codesign 报 resource fork not allowed
+    import tempfile
+    tmp_dir = tempfile.mkdtemp(prefix="radio_ver_")
+    try:
+        run([
+            "ditto", "-V", "--noqtn", "--noextattr",
+            app_path,
+            os.path.join(tmp_dir, os.path.basename(app_path)),
+        ], capture_output=True)
+        shutil.rmtree(app_path)
+        shutil.move(
+            os.path.join(tmp_dir, os.path.basename(app_path)),
+            app_path,
+        )
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
     run(["codesign", "--force", "--sign", "-", app_path])
 
 
