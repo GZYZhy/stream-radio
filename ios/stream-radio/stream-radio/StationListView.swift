@@ -145,7 +145,7 @@ struct StationListView: View {
                 .disabled(editName.trimmingCharacters(in: .whitespaces).isEmpty)
         }
         .fileImporter(isPresented: $showingImport,
-                      allowedContentTypes: [.plainText, .item]) { result in
+                      allowedContentTypes: [.m3uPlaylist, .plainText, .data]) { result in
             importM3U(from: result)
         }
         .sheet(isPresented: $showingImportPreview) {
