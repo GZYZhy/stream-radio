@@ -124,13 +124,13 @@ final class PlayerManager {
         if player.timeControlStatus == .playing {
             player.pause()
             isPlaying = false
-        } else if currentStation != nil {
-            player.play()
-            isPlaying = true
+            updateNowPlaying()  // 同步播放速率到控制中心
+        } else if let currentStation {
+            // 已停止（currentItem 被清）或暂停：重新加载流并播放（按当时直播开播）
+            play(currentStation)
         } else {
             return
         }
-        updateNowPlaying()  // 同步播放速率到控制中心
     }
 
     func stop() {
@@ -140,14 +140,20 @@ final class PlayerManager {
         metadataOutput = nil
         player.pause()
         player.replaceCurrentItem(with: nil)
-        currentStation = nil
         isPlaying = false
         programTitle = nil
+        // 注意：保留 currentStation，方便用户点击播放按钮重新开播同一台
         // 停止播放时同步取消定时停播（否则用户再开播会继续计时）
         sleepTimer?.invalidate()
         sleepTimer = nil
         sleepTimerRemaining = nil
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+    }
+
+    /// 完全清空播放状态（切换台失败等场景使用）
+    func reset() {
+        stop()
+        currentStation = nil
     }
 
     func next(in stations: [Station]) {

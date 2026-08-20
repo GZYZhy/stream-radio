@@ -31,50 +31,6 @@ struct NowPlayingView: View {
     var body: some View {
         VStack(spacing: 20) {
             HStack {
-                Button {
-                    showingSleepMenu.toggle()
-                } label: {
-                    Image(systemName: player.sleepTimerRemaining != nil ? "timer.fill" : "timer")
-                        .font(.title2)
-                        .foregroundStyle(player.sleepTimerRemaining != nil ? .blue : .primary)
-                }
-                .padding()
-                .confirmationDialog("定时停播", isPresented: $showingSleepMenu, titleVisibility: .visible) {
-                    ForEach(presetMinutes, id: \.self) { min in
-                        Button("\(min) 分钟") {
-                            player.setSleepTimer(minutes: min)
-                        }
-                    }
-                    Button("自定义…") {
-                        customMinutes = ""
-                        showingCustomSleep = true
-                    }
-                    if player.sleepTimerRemaining != nil {
-                        Button("取消定时", role: .destructive) {
-                            player.setSleepTimer(minutes: nil)
-                        }
-                    }
-                    Button("取消", role: .cancel) { }
-                } message: {
-                    if let remaining = player.sleepTimerRemaining {
-                        Text("剩余 \(Self.formatRemaining(remaining)) 后停止播放")
-                    } else {
-                        Text("选择时长后，倒计时结束自动停止播放")
-                    }
-                }
-                .alert("自定义时长", isPresented: $showingCustomSleep) {
-                    TextField("分钟", text: $customMinutes)
-                        .keyboardType(.numberPad)
-                    Button("取消", role: .cancel) { }
-                    Button("确定") {
-                        if let m = Int(customMinutes), m > 0 {
-                            player.setSleepTimer(minutes: m)
-                        }
-                    }
-                } message: {
-                    Text("输入分钟数（例如 25）")
-                }
-
                 Spacer()
                 Button { dismiss() } label: { Image(systemName: "chevron.down") }
                     .font(.title2)
@@ -126,22 +82,70 @@ struct NowPlayingView: View {
                 }
             }
             .tint(.primary)
-            // 标星/取消标星当前台（星形状态实时反映仓库最新收藏）
-            if let station = player.currentStation {
-                let isFavorite = store.stations.first { $0.url == station.url }?.isFavorite ?? false
-                Button {
-                    store.toggleFavorite(station)
-                    player.refreshBookmarkState()
-                } label: {
-                    Label(isFavorite ? "已标星" : "标星",
-                          systemImage: isFavorite ? "star.fill" : "star")
-                        .font(.headline)
-                        .foregroundStyle(isFavorite ? .yellow : .secondary)
+            // 标星 + 定时停播（并列一行）
+            if player.currentStation != nil {
+                HStack(spacing: 24) {
+                    if let station = player.currentStation {
+                        let isFavorite = store.stations.first { $0.url == station.url }?.isFavorite ?? false
+                        Button {
+                            store.toggleFavorite(station)
+                            player.refreshBookmarkState()
+                        } label: {
+                            Label(isFavorite ? "已标星" : "标星",
+                                  systemImage: isFavorite ? "star.fill" : "star")
+                                .font(.headline)
+                                .foregroundStyle(isFavorite ? .yellow : .secondary)
+                        }
+                    }
+                    Button {
+                        showingSleepMenu.toggle()
+                    } label: {
+                        let isActive = player.sleepTimerRemaining != nil
+                        Label(isActive ? "定时中" : "定时停播",
+                              systemImage: isActive ? "timer.fill" : "timer")
+                            .font(.headline)
+                            .foregroundStyle(isActive ? .blue : .secondary)
+                    }
                 }
                 .padding(.top, 8)
             }
             Spacer()
         }
         .padding()
+        .confirmationDialog("定时停播", isPresented: $showingSleepMenu, titleVisibility: .visible) {
+            ForEach(presetMinutes, id: \.self) { min in
+                Button("\(min) 分钟") {
+                    player.setSleepTimer(minutes: min)
+                }
+            }
+            Button("自定义…") {
+                customMinutes = ""
+                showingCustomSleep = true
+            }
+            if player.sleepTimerRemaining != nil {
+                Button("取消定时", role: .destructive) {
+                    player.setSleepTimer(minutes: nil)
+                }
+            }
+            Button("取消", role: .cancel) { }
+        } message: {
+            if let remaining = player.sleepTimerRemaining {
+                Text("剩余 \(Self.formatRemaining(remaining)) 后停止播放")
+            } else {
+                Text("选择时长后，倒计时结束自动停止播放")
+            }
+        }
+        .alert("自定义时长", isPresented: $showingCustomSleep) {
+            TextField("分钟", text: $customMinutes)
+                .keyboardType(.numberPad)
+            Button("取消", role: .cancel) { }
+            Button("确定") {
+                if let m = Int(customMinutes), m > 0 {
+                    player.setSleepTimer(minutes: m)
+                }
+            }
+        } message: {
+            Text("输入分钟数（例如 25）")
+        }
     }
 }
