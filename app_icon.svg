@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- 背景圆角矩形渐变 -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3a7d5c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1f5a3f;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- 收音机机身渐变 -->
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4a574;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#b8895a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b6239;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- 机身高光 -->
+    <linearGradient id="bodyHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0d4a8;stop-opacity:0.6" />
+      <stop offset="30%" style="stop-color:#f0d4a8;stop-opacity:0" />
+    </linearGradient>
+
+    <!-- 扬声器格栅渐变 -->
+    <radialGradient id="speakerGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#2a1f15;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a130c;stop-opacity:1" />
+    </radialGradient>
+
+    <!-- 调频盘 -->
+    <radialGradient id="dialGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#f5e6c8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d4c4a0;stop-opacity:1" />
+    </radialGradient>
+
+    <!-- 旋钮金属感 -->
+    <radialGradient id="knobGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" style="stop-color:#e8e8e8;stop-opacity:1" />
+      <stop offset="60%" style="stop-color:#a0a0a0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#505050;stop-opacity:1" />
+    </radialGradient>
+
+    <!-- 信号波 -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 背景：圆角矩形（模拟 macOS 图标形状） -->
+  <rect x="64" y="64" width="896" height="896" rx="180" ry="180" fill="url(#bgGrad)"/>
+
+  <!-- 顶部高光 -->
+  <rect x="64" y="64" width="896" height="448" rx="180" ry="180" fill="url(#bodyHighlight)" opacity="0.15"/>
+
+  <!-- 信号波（右上角，收音机风格） -->
+  <g filter="url(#glow)" transform="translate(700, 180)">
+    <path d="M 0 40 Q 20 20 40 40 Q 60 60 80 40 Q 100 20 120 40"
+          fill="none" stroke="#c8e6d2" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
+    <path d="M 10 60 Q 30 45 50 60 Q 70 75 90 60 Q 110 45 130 60"
+          fill="none" stroke="#c8e6d2" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+    <path d="M 20 80 Q 40 70 60 80 Q 80 90 100 80"
+          fill="none" stroke="#c8e6d2" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+    <!-- 信号点 -->
+    <circle cx="0" cy="40" r="8" fill="#c8e6d2" opacity="0.9"/>
+  </g>
+
+  <!-- 收音机机身 -->
+  <rect x="140" y="280" width="744" height="500" rx="60" ry="60" fill="url(#bodyGrad)"/>
+
+  <!-- 机身边缘高光 -->
+  <rect x="140" y="280" width="744" height="60" rx="60" ry="60" fill="#e8c49a" opacity="0.4"/>
+
+  <!-- 机身底部阴影 -->
+  <rect x="140" y="720" width="744" height="60" rx="60" ry="60" fill="#6b4a28" opacity="0.5"/>
+
+  <!-- 调频表盘（长方形，复古风格） -->
+  <rect x="200" y="340" width="624" height="180" rx="20" ry="20" fill="#3a2a1a" stroke="#5a4030" stroke-width="6"/>
+
+  <!-- 表盘内部玻璃感 -->
+  <rect x="214" y="354" width="596" height="152" rx="12" ry="12" fill="url(#dialGrad)"/>
+
+  <!-- 表盘刻度 -->
+  <g stroke="#6b4a28" stroke-width="2" opacity="0.7">
+    <line x1="240" y1="374" x2="240" y2="394"/>
+    <line x1="300" y1="374" x2="300" y2="400"/>
+    <line x1="360" y1="374" x2="360" y2="394"/>
+    <line x1="420" y1="374" x2="420" y2="404"/>
+    <line x1="480" y1="374" x2="480" y2="394"/>
+    <line x1="540" y1="374" x2="540" y2="400"/>
+    <line x1="600" y1="374" x2="600" y2="394"/>
+    <line x1="660" y1="374" x2="660" y2="404"/>
+    <line x1="720" y1="374" x2="720" y2="394"/>
+    <line x1="780" y1="374" x2="780" y2="400"/>
+  </g>
+
+  <!-- 表盘频率数字 -->
+  <g font-family="Georgia, serif" font-size="18" fill="#5a4028" text-anchor="middle">
+    <text x="300" y="440">88</text>
+    <text x="420" y="440">95</text>
+    <text x="540" y="440">FM 102</text>
+    <text x="660" y="440">108</text>
+  </g>
+
+  <!-- 指针 -->
+  <g transform="translate(540, 380)">
+    <polygon points="0,-8 16,0 0,8" fill="#d04545"/>
+    <line x1="0" y1="0" x2="0" y2="110" stroke="#d04545" stroke-width="2" opacity="0.8"/>
+  </g>
+
+  <!-- 表盘玻璃反光 -->
+  <rect x="214" y="354" width="596" height="76" rx="12" ry="12" fill="white" opacity="0.12"/>
+
+  <!-- 左侧大扬声器 -->
+  <circle cx="320" cy="620" r="110" fill="url(#speakerGrad)" stroke="#5a4028" stroke-width="6"/>
+
+  <!-- 扬声器格栅（同心圆） -->
+  <g fill="none" stroke="#4a3828" stroke-width="2" opacity="0.8">
+    <circle cx="320" cy="620" r="20"/>
+    <circle cx="320" cy="620" r="35"/>
+    <circle cx="320" cy="620" r="50"/>
+    <circle cx="320" cy="620" r="65"/>
+    <circle cx="320" cy="620" r="80"/>
+    <circle cx="320" cy="620" r="95"/>
+  </g>
+  <!-- 扬声器格栅（辐射线） -->
+  <g stroke="#4a3828" stroke-width="2" opacity="0.6">
+    <line x1="320" y1="525" x2="320" y2="715"/>
+    <line x1="225" y1="620" x2="415" y2="620"/>
+    <line x1="252" y1="552" x2="388" y2="688"/>
+    <line x1="388" y1="552" x2="252" y2="688"/>
+  </g>
+  <!-- 扬声器中心帽 -->
+  <circle cx="320" cy="620" r="20" fill="#3a2a1a" stroke="#5a4028" stroke-width="3"/>
+
+  <!-- 右侧控制区 -->
+  <g transform="translate(600, 570)">
+    <!-- 大旋钮（调台） -->
+    <circle cx="0" cy="0" r="70" fill="url(#knobGrad)" stroke="#404040" stroke-width="3"/>
+    <circle cx="0" cy="0" r="58" fill="none" stroke="#707070" stroke-width="1" opacity="0.5"/>
+    <!-- 旋钮刻度线 -->
+    <g stroke="#303030" stroke-width="3" stroke-linecap="round">
+      <line x1="0" y1="-60" x2="0" y2="-48"/>
+      <line x1="42" y1="-42" x2="34" y2="-34" transform="rotate(0)"/>
+      <line x1="60" y1="0" x2="48" y2="0"/>
+      <line x1="-42" y1="-42" x2="-34" y2="-34"/>
+      <line x1="-60" y1="0" x2="-48" y2="0"/>
+    </g>
+    <!-- 旋钮指针 -->
+    <line x1="0" y1="0" x2="0" y2="-40" stroke="#1a1a1a" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="0" cy="0" r="8" fill="#1a1a1a"/>
+
+    <!-- 旋钮标签 -->
+    <text x="0" y="100" text-anchor="middle" font-family="Georgia, serif" font-size="20" fill="#3a2a1a" font-weight="bold">TUNING</text>
+  </g>
+
+  <g transform="translate(780, 570)">
+    <!-- 小旋钮（音量） -->
+    <circle cx="0" cy="0" r="50" fill="url(#knobGrad)" stroke="#404040" stroke-width="3"/>
+    <g stroke="#303030" stroke-width="2.5" stroke-linecap="round">
+      <line x1="0" y1="-42" x2="0" y2="-32"/>
+      <line x1="30" y1="-30" x2="23" y2="-23"/>
+      <line x1="42" y1="0" x2="32" y2="0"/>
+      <line x1="-30" y1="-30" x2="-23" y2="-23"/>
+      <line x1="-42" y1="0" x2="-32" y2="0"/>
+    </g>
+    <line x1="0" y1="0" x2="0" y2="-28" stroke="#1a1a1a" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="0" cy="0" r="6" fill="#1a1a1a"/>
+
+    <!-- 旋钮标签 -->
+    <text x="0" y="78" text-anchor="middle" font-family="Georgia, serif" font-size="16" fill="#3a2a1a" font-weight="bold">VOL</text>
+  </g>
+
+  <!-- 底部支脚 -->
+  <rect x="220" y="770" width="40" height="30" rx="6" ry="6" fill="#5a3f25"/>
+  <rect x="764" y="770" width="40" height="30" rx="6" ry="6" fill="#5a3f25"/>
+
+  <!-- 品牌标 -->
+  <text x="512" y="765" text-anchor="middle" font-family="Georgia, serif" font-size="22"
+        fill="#3a2a1a" font-weight="bold" font-style="italic" opacity="0.8">RADIO</text>
+
+</svg>
