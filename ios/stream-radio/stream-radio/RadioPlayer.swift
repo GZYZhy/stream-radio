@@ -12,6 +12,12 @@ final class PlayerManager {
     var programTitle: String?
     var errorMessage: String?
 
+    // ---- 定时停播 ----
+    /// 剩余秒数（nil 表示未设置）
+    var sleepTimerRemaining: Int?
+    /// 定时器
+    private var sleepTimer: Timer?
+
     private let player = AVPlayer()
     private var statusObserver: NSKeyValueObservation?
     private var metadataOutput: AVPlayerItemMetadataOutput?
@@ -41,7 +47,35 @@ final class PlayerManager {
         }
     }
 
+    /// 设置定时停播（分钟数，传 nil 取消）
+    func setSleepTimer(minutes: Int?) {
+        sleepTimer?.invalidate()
+        sleepTimer = nil
+        guard let minutes, minutes > 0 else {
+            sleepTimerRemaining = nil
+            return
+        }
+        sleepTimerRemaining = minutes * 60
+        sleepTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.tickSleepTimer() }
+        }
+    }
+
+    private func tickSleepTimer() {
+        guard var remaining = sleepTimerRemaining, remaining > 0 else { return }
+        remaining -= 1
+        sleepTimerRemaining = remaining
+        if remaining <= 0 {
+            // 时间到：停止播放并清理定时器
+            sleepTimer?.invalidate()
+            sleepTimer = nil
+            sleepTimerRemaining = nil
+            stop()
+        }
+    }
+
     func play(_ station: Station) {
+        // 换台不重置定时停播（用户设定保持到手动取消或到期）
         currentStation = station
         programTitle = nil
         errorMessage = nil
@@ -109,6 +143,10 @@ final class PlayerManager {
         currentStation = nil
         isPlaying = false
         programTitle = nil
+        // 停止播放时同步取消定时停播（否则用户再开播会继续计时）
+        sleepTimer?.invalidate()
+        sleepTimer = nil
+        sleepTimerRemaining = nil
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 

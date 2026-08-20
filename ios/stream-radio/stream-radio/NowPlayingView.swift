@@ -1,10 +1,17 @@
 import SwiftUI
 
-// 正在播放：站名、节目信息、播放/暂停、上一台/下一台
+// 正在播放：站名、节目信息、播放/暂停、上一台/下一台、定时停播
 struct NowPlayingView: View {
     @Environment(StationStore.self) private var store
     @Environment(PlayerManager.self) private var player
     @Environment(\.dismiss) private var dismiss
+
+    @State private var showingSleepMenu = false
+    @State private var showingCustomSleep = false
+    @State private var customMinutes = ""
+
+    /// 可选的定时停播时长（分钟）
+    private let presetMinutes = [10, 15, 30, 45, 60, 90, 120]
 
     /// 日期时间格式：中文、含秒，用于播放页时钟
     private static let timeFormatter: DateFormatter = {
@@ -14,9 +21,60 @@ struct NowPlayingView: View {
         return f
     }()
 
+    /// 将秒数格式化为 "mm:ss"
+    private static func formatRemaining(_ seconds: Int) -> String {
+        let m = seconds / 60
+        let s = seconds % 60
+        return String(format: "%02d:%02d", m, s)
+    }
+
     var body: some View {
         VStack(spacing: 20) {
             HStack {
+                Button {
+                    showingSleepMenu.toggle()
+                } label: {
+                    Image(systemName: player.sleepTimerRemaining != nil ? "timer.fill" : "timer")
+                        .font(.title2)
+                        .foregroundStyle(player.sleepTimerRemaining != nil ? .blue : .primary)
+                }
+                .padding()
+                .confirmationDialog("定时停播", isPresented: $showingSleepMenu, titleVisibility: .visible) {
+                    ForEach(presetMinutes, id: \.self) { min in
+                        Button("\(min) 分钟") {
+                            player.setSleepTimer(minutes: min)
+                        }
+                    }
+                    Button("自定义…") {
+                        customMinutes = ""
+                        showingCustomSleep = true
+                    }
+                    if player.sleepTimerRemaining != nil {
+                        Button("取消定时", role: .destructive) {
+                            player.setSleepTimer(minutes: nil)
+                        }
+                    }
+                    Button("取消", role: .cancel) { }
+                } message: {
+                    if let remaining = player.sleepTimerRemaining {
+                        Text("剩余 \(Self.formatRemaining(remaining)) 后停止播放")
+                    } else {
+                        Text("选择时长后，倒计时结束自动停止播放")
+                    }
+                }
+                .alert("自定义时长", isPresented: $showingCustomSleep) {
+                    TextField("分钟", text: $customMinutes)
+                        .keyboardType(.numberPad)
+                    Button("取消", role: .cancel) { }
+                    Button("确定") {
+                        if let m = Int(customMinutes), m > 0 {
+                            player.setSleepTimer(minutes: m)
+                        }
+                    }
+                } message: {
+                    Text("输入分钟数（例如 25）")
+                }
+
                 Spacer()
                 Button { dismiss() } label: { Image(systemName: "chevron.down") }
                     .font(.title2)
@@ -35,10 +93,19 @@ struct NowPlayingView: View {
                 .multilineTextAlignment(.center)
             // 当前日期时间（每秒刷新）
             TimelineView(.periodic(from: .now, by: 1)) { context in
-                Text(Self.timeFormatter.string(from: context.date))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
+                VStack(spacing: 4) {
+                    Text(Self.timeFormatter.string(from: context.date))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                    if let remaining = player.sleepTimerRemaining {
+                        Label("定时停播 \(Self.formatRemaining(remaining))",
+                              systemImage: "timer")
+                        .font(.caption)
+                        .foregroundStyle(.blue)
+                        .monospacedDigit()
+                    }
+                }
             }
             if let error = player.errorMessage {
                 Text(error)

@@ -1173,6 +1173,10 @@ class RadioWindow(QMainWindow):
         self.current_pool = "all"         # 当前换台范围："all"=全部电台，"starred"=星标台
         self.is_playing = False
 
+        # 定时停播
+        self.sleep_timer = None           # QTimer（秒级倒计时）
+        self.sleep_remaining = 0          # 剩余秒数，0 表示未设置
+
         # 后台节目信息抓取线程
         self._icy_fetcher = None          # 流内 ICY 元数据（直连音频流）
         self._status_fetcher = None       # Icecast status-json（所有台兜底）
@@ -1281,6 +1285,14 @@ class RadioWindow(QMainWindow):
         self.now_program_label.setObjectName("cardTitle")
         self.now_program_label.setMinimumHeight(16)
         now_layout.addWidget(self.now_program_label)
+
+        # 定时停播倒计时
+        self.sleep_label = QLabel("")
+        self.sleep_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.sleep_label.setStyleSheet("font-size: 12px; color: #007AFF;")
+        self.sleep_label.setObjectName("cardTitle")
+        self.sleep_label.setMinimumHeight(16)
+        now_layout.addWidget(self.sleep_label)
 
         # Tab 分页（电台 / 录制 / 设置）
         self.tabs = QTabWidget()
@@ -1537,6 +1549,13 @@ class RadioWindow(QMainWindow):
 
         mini_ctrl.addStretch(1)
 
+        # 定时停播按钮
+        self.sleep_btn = QPushButton("⏱")
+        self.sleep_btn.setFixedSize(34, 34)
+        self.sleep_btn.setToolTip("定时停播")
+        self.sleep_btn.setMenu(self._build_sleep_menu())
+        mini_ctrl.addWidget(self.sleep_btn)
+
         mini_vol_label = QLabel("🔊")
         mini_ctrl.addWidget(mini_vol_label)
 
@@ -1596,6 +1615,71 @@ class RadioWindow(QMainWindow):
             path = "…" + path[-38:]
         self.rec_dir_label.setText(path)
         self.rec_dir_label.setToolTip(self.record_dir)
+
+    # ---- 定时停播 ----
+    def _build_sleep_menu(self):
+        """构造定时停播的下拉菜单"""
+        from PyQt6.QtGui import QAction
+        menu = QMenu(self)
+        presets = [10, 15, 30, 45, 60, 90, 120]
+        for m in presets:
+            act = QAction(f"{m} 分钟后停止", self)
+            act.triggered.connect(lambda _checked=False, mm=m: self.set_sleep_timer(mm))
+            menu.addAction(act)
+        menu.addSeparator()
+        custom_act = QAction("自定义…", self)
+        custom_act.triggered.connect(lambda _checked=False: self._custom_sleep_timer())
+        menu.addAction(custom_act)
+        cancel_act = QAction("取消定时", self)
+        cancel_act.triggered.connect(lambda _checked=False: self.set_sleep_timer(0))
+        menu.addAction(cancel_act)
+        return menu
+
+    def set_sleep_timer(self, minutes):
+        """设置定时停播（分钟数）；传 0 或 None 取消"""
+        minutes = int(minutes or 0)
+        if minutes <= 0:
+            if self.sleep_timer:
+                self.sleep_timer.stop()
+                self.sleep_timer = None
+            self.sleep_remaining = 0
+            self.sleep_label.setText("")
+            return
+        self.sleep_remaining = minutes * 60
+        self._update_sleep_label()
+        if self.sleep_timer is None:
+            self.sleep_timer = QTimer(self)
+            self.sleep_timer.timeout.connect(self._tick_sleep_timer)
+        self.sleep_timer.start(1000)  # 1 秒
+
+    def _custom_sleep_timer(self):
+        """弹出对话框输入自定义分钟数"""
+        val, ok = QInputDialog.getInt(
+            self, "定时停播", "多少分钟后停止播放：",
+            value=30, minValue=1, maxValue=720, step=1
+        )
+        if ok and val > 0:
+            self.set_sleep_timer(val)
+
+    def _tick_sleep_timer(self):
+        """每秒倒计时一次"""
+        self.sleep_remaining -= 1
+        if self.sleep_remaining <= 0:
+            # 时间到：停止播放（会连带停止录制、清空定时器）
+            self.stop()
+            return
+        self._update_sleep_label()
+
+    def _update_sleep_label(self):
+        """更新倒计时显示"""
+        s = self.sleep_remaining
+        h, rem = divmod(s, 3600)
+        m, sec = divmod(rem, 60)
+        if h > 0:
+            text = f"⏱ 定时停播 {h:02d}:{m:02d}:{sec:02d}"
+        else:
+            text = f"⏱ 定时停播 {m:02d}:{sec:02d}"
+        self.sleep_label.setText(text)
 
     # ---- 主题（跟随系统深色/浅色） ----
     def _is_dark_mode(self):
@@ -3255,6 +3339,13 @@ class RadioWindow(QMainWindow):
         if self.record_proc:
             self._stop_record()
             self.rec_timer_label.setText(self.rec_timer_label.text() + "\n（停止播放已结束录制）")
+
+        # 停止播放时取消定时停播
+        if self.sleep_timer:
+            self.sleep_timer.stop()
+            self.sleep_timer = None
+        self.sleep_remaining = 0
+        self.sleep_label.setText("")
 
         self.media_int.clear()
 
