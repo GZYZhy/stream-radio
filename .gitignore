@@ -10,6 +10,7 @@ xcuserdata/
 # 本项目的构建与数据目录
 build_app/
 recordings/
+*.ipa
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
