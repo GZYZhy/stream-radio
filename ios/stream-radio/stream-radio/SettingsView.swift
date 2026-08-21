@@ -185,9 +185,18 @@ struct AboutView: View {
                 Link(destination: URL(string: "https://github.com/GZYZhy/stream-radio")!) {
                     Label("GitHub 仓库", systemImage: "link")
                 }
+                Link(destination: URL(string: "https://www.zdeweb.cn")!) {
+                    Label("作者博客", systemImage: "link")
+                }
+                Link(destination: URL(string: "https://github.com/GZYZhy")!) {
+                    Label("作者 GitHub", systemImage: "link")
+                }
+                Link(destination: URL(string: "https://github.com/GZYZhy/stream-radio#免责声明")!) {
+                    Label("使用即代表同意本免责声明", systemImage: "link")
+                }
             }
             Section("说明") {
-                Text("极简原生网络电台播放器。\n基于 SwiftUI + AVPlayer，支持 ICY 节目信息、星标、订阅与连通性检查。")
+                Text("极简原生网络电台播放器。\n © 2026 GZYZhy 版权所有。\n 本程序不保证电台内容、连通性，请自行添加拥有合法授权的音源。\n 电台质量与网络环境和电台来源有关。")
                     .foregroundStyle(.secondary)
             }
         }
@@ -201,31 +210,37 @@ struct HelpView: View {
     var body: some View {
         List {
             Section("快速上手") {
-                LabeledContent("播放电台", value: "点击电台行即可开始播放")
-                LabeledContent("搜索电台", value: "列表顶部搜索框，按名称/地址实时过滤")
-                LabeledContent("节目信息", value: "播放页显示 ICY 流内节目；HLS 台一般只显示站名")
+                LabeledContent("播放电台", value: "点击电台即可开始播放")
+                LabeledContent("搜索电台", value: "列表顶部搜索框，按名称/地址过滤")
+                LabeledContent("节目信息", value: "当电台来源包含节目单时会自动展示")
             }
             Section("电台管理") {
                 LabeledContent("添加电台", value: "列表右上角「+」填写名称与播放地址")
-                LabeledContent("导入 m3u", value: "列表右上角「⇩」从「文件」App 选择播放列表")
+                LabeledContent("本地导入", value: "列表右上角「⇩」从「文件」选择m3u文件")
                 LabeledContent("长按电台", value: "编辑 / 上移 / 下移 / 标星 / 删除")
                 LabeledContent("左滑电台", value: "编辑 / 删除")
             }
             Section("星标") {
-                LabeledContent("标星", value: "长按或点行尾星标；星标台在侧边栏单独查看")
+                LabeledContent("标星", value: "长按或点行尾星标，支持控制中心星标")
+                LabeledContent("星标列表", value: "侧边栏 → 星标台 可查看所有标星电台")
             }
             Section("订阅") {
                 LabeledContent("入口", value: "侧边栏 → 设置 → 订阅")
                 LabeledContent("添加订阅", value: "填写名称与 m3u 链接")
                 LabeledContent("手动同步", value: "下载解析后按播放链接去重，只新增不重复的电台")
+                LabeledContent("启动时同步", value: "打开后启动时会自动拉取链接进行同步")
+                LabeledContent("说明", value: "同步功能不会移除已存在的电台，仅新增不重复的电台")
             }
             Section("网络") {
                 LabeledContent("连通性检查", value: "侧边栏 → 设置 → 检查全部电台")
-                LabeledContent("原理", value: "HEAD 探测，部分服务器不支持时自动 GET 兜底")
+                LabeledContent("删除电台", value: "可一键删除 / 左划删除失败电台")
+                LabeledContent("说明", value: "当电台数量过多时，检查可能需要较长时间")
             }
             Section("外观与其他") {
                 LabeledContent("深浅色", value: "设置 → 外观，跟随系统 / 浅色 / 深色")
                 LabeledContent("后台播放", value: "锁屏与控制中心可查看节目并切台")
+                LabeledContent("质量指示", value: "播放页会展示获取到的码率、格式、延迟、声道数信息")
+                LabeledContent("播放设备", value: "请通过控制中心切换播放声音的设备")
             }
         }
         .listStyle(.insetGrouped)
