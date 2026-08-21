@@ -11,6 +11,17 @@
 - 跨平台：macOS / Windows / Linux
 """
 
+from PyQt6.QtCore import QUrl, Qt, QTimer, QSettings, QThread, pyqtSignal
+from PyQt6.QtGui import QAction, QKeySequence, QIcon, QShortcut, QColor
+from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QListWidget, QListWidgetItem, QPushButton, QLabel, QSlider,
+    QGroupBox, QMessageBox, QInputDialog, QFileDialog, QMenuBar,
+    QMenu, QDialog, QTabWidget, QCheckBox, QSpinBox, QProgressBar,
+    QSystemTrayIcon, QLineEdit, QComboBox, QFrame, QTextEdit, QPlainTextEdit,
+    QDialogButtonBox, QFormLayout, QAbstractItemView, QStyleFactory,
+)
 import os
 import sys
 import re
@@ -79,18 +90,6 @@ def _ensure_pyqt6():
 
 
 _ensure_pyqt6()
-
-from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QListWidget, QListWidgetItem, QPushButton, QLabel, QSlider,
-    QGroupBox, QMessageBox, QInputDialog, QFileDialog, QMenuBar,
-    QMenu, QDialog, QTabWidget, QCheckBox, QSpinBox, QProgressBar,
-    QSystemTrayIcon, QLineEdit, QComboBox, QFrame, QTextEdit, QPlainTextEdit,
-    QDialogButtonBox, QFormLayout, QAbstractItemView, QStyleFactory,
-)
-from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
-from PyQt6.QtGui import QAction, QKeySequence, QIcon, QShortcut, QColor
-from PyQt6.QtCore import QUrl, Qt, QTimer, QSettings, QThread, pyqtSignal
 
 
 # 音频 Content-Type / server_type → 展示用的编码名（质量指示器用）
@@ -285,7 +284,8 @@ class SystemMediaIntegration:
                 )
                 return artwork
             except ImportError:
-                print("[封面] 缺少 Quartz 框架（pip install pyobjc-framework-Quartz），跳过封面", file=sys.stderr)
+                print(
+                    "[封面] 缺少 Quartz 框架（pip install pyobjc-framework-Quartz），跳过封面", file=sys.stderr)
                 return None
         except Exception as e:
             print(f"[封面] 生成失败: {e}", file=sys.stderr)
@@ -330,7 +330,8 @@ class SystemMediaIntegration:
             request = UserNotifications.UNNotificationRequest.requestWithIdentifier_content_trigger_(
                 "now-playing", content, None
             )
-            self._notif_center.addNotificationRequest_withCompletionHandler_(request, None)
+            self._notif_center.addNotificationRequest_withCompletionHandler_(
+                request, None)
         except Exception:
             log.exception("推送系统通知失败")
 
@@ -576,7 +577,8 @@ class IcecastStatusFetcher(QThread):
     """
 
     program_updated = pyqtSignal(str)   # 每次查到新的节目/曲目文本
-    quality_updated = pyqtSignal(dict)  # 质量信息：{codec, bitrate, samplerate, channels}
+    # 质量信息：{codec, bitrate, samplerate, channels}
+    quality_updated = pyqtSignal(dict)
 
     def __init__(self, url, parent=None):
         super().__init__(parent)
@@ -750,7 +752,8 @@ class ImportDialog(QDialog):
         url_row = QHBoxLayout()
         log.info("ImportDialog._build_ui: 创建 QLineEdit（网络链接输入框）")
         self.url_edit = QLineEdit()
-        self.url_edit.setPlaceholderText("粘贴 m3u 链接，例如 https://example.com/radio.m3u")
+        self.url_edit.setPlaceholderText(
+            "粘贴 m3u 链接，例如 https://example.com/radio.m3u")
         url_row.addWidget(self.url_edit, 1)
 
         load_url_btn = QPushButton("解析")
@@ -790,7 +793,8 @@ class ImportDialog(QDialog):
         self.list_widget.setStyle(QStyleFactory.create("Fusion"))
         self.list_widget.setStyleSheet("QListWidget { font-size: 13px; }")
         # 不启用行选中（避免标蓝后要点两次取消），勾选靠复选框，变化实时刷新统计
-        self.list_widget.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        self.list_widget.setSelectionMode(
+            QAbstractItemView.SelectionMode.NoSelection)
         self.list_widget.itemChanged.connect(self._update_stat)
         layout.addWidget(self.list_widget, stretch=1)
 
@@ -886,7 +890,8 @@ class ImportDialog(QDialog):
             if is_dup:
                 # 重复台不可勾选（默认跳过），只显示灰色提示
                 dup_count += 1
-                item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
+                item.setFlags(Qt.ItemFlag.ItemIsSelectable |
+                              Qt.ItemFlag.ItemIsEnabled)
                 item.setForeground(Qt.GlobalColor.gray)
                 item.setText(f"{name}  （已存在，跳过）")
             else:
@@ -932,7 +937,8 @@ class ImportDialog(QDialog):
         checked = self._checked_count()
         total = len(getattr(self, "current_radios", []))
         dup = getattr(self, "dup_count", 0)
-        self.stat_label.setText(f"共 {total} 个电台，已选 {checked} 个，重复 {dup} 个（默认跳过）")
+        self.stat_label.setText(
+            f"共 {total} 个电台，已选 {checked} 个，重复 {dup} 个（默认跳过）")
 
     # ---- 结果 ----
     def get_selected_radios(self):
@@ -970,9 +976,11 @@ def find_m3u_file():
 
     if getattr(sys, "frozen", False):
         app_dir = os.path.dirname(sys.executable)
-        app_sibling_dir = os.path.dirname(os.path.dirname(os.path.dirname(app_dir)))
+        app_sibling_dir = os.path.dirname(
+            os.path.dirname(os.path.dirname(app_dir)))
         script_dir = app_sibling_dir
-        log.info("    frozen 分支: app_dir=%s, app_sibling_dir=%s", app_dir, app_sibling_dir)
+        log.info("    frozen 分支: app_dir=%s, app_sibling_dir=%s",
+                 app_dir, app_sibling_dir)
     else:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         app_sibling_dir = script_dir
@@ -1134,7 +1142,8 @@ class ConnectivityCheckDialog(QDialog):
         item = self.list_widget.item(idx)
         if ok:
             item.setText(f"✅  {name}  ({duration}ms)")
-            item.setForeground(QColor("#007AFF") if False else Qt.GlobalColor.darkGreen)
+            item.setForeground(
+                QColor("#007AFF") if False else Qt.GlobalColor.darkGreen)
         else:
             item.setText(f"❌  {name}  —  点击查看详情")
             item.setForeground(QColor("#d04545"))
@@ -1163,7 +1172,8 @@ class ConnectivityCheckDialog(QDialog):
                 req = urllib.request.Request(url, headers={
                     "User-Agent": "Mozilla/5.0 RadioPlayer/1.0",
                 })
-                resp = urllib.request.urlopen(req, timeout=timeout, context=ctx)
+                resp = urllib.request.urlopen(
+                    req, timeout=timeout, context=ctx)
                 resp.read(4096)  # 只读 4KB 就断开
                 resp.close()
                 return True, ""
@@ -1231,7 +1241,8 @@ class ConnectivityCheckDialog(QDialog):
 class RadioWindow(QMainWindow):
     def __init__(self, radios, m3u_path):
         super().__init__()
-        log.info("RadioWindow.__init__ 开始，电台数量=%d，m3u=%s", len(radios), m3u_path)
+        log.info("RadioWindow.__init__ 开始，电台数量=%d，m3u=%s",
+                 len(radios), m3u_path)
         self.radios = list(radios)        # 当前电台列表
         self.m3u_path = m3u_path          # 电台列表文件路径
         self.current_index = -1
@@ -1269,13 +1280,16 @@ class RadioWindow(QMainWindow):
 
         # 星标电台（按 URL 记录，存在 QSettings，不写进 m3u 文件）
         star_val = self.settings.value("starred_urls", [])
-        self._starred_urls = set(star_val) if isinstance(star_val, list) else set()
-        log.info("RadioWindow.__init__: 设置读取完成，录制目录=%s，音量=%d", self.record_dir, self.volume)
+        self._starred_urls = set(star_val) if isinstance(
+            star_val, list) else set()
+        log.info("RadioWindow.__init__: 设置读取完成，录制目录=%s，音量=%d",
+                 self.record_dir, self.volume)
 
         # 系统媒体集成
         log.info("RadioWindow.__init__: 开始初始化系统媒体集成")
         self.media_int = SystemMediaIntegration(self)
-        log.info("RadioWindow.__init__: 系统媒体集成完成，enabled=%s", self.media_int.enabled)
+        log.info("RadioWindow.__init__: 系统媒体集成完成，enabled=%s",
+                 self.media_int.enabled)
 
         log.info("RadioWindow.__init__: 开始构建 UI")
         self._build_ui()
@@ -1347,7 +1361,8 @@ class RadioWindow(QMainWindow):
         now_layout.setSpacing(2)
         self.now_label = QLabel("未播放")
         self.now_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.now_label.setStyleSheet("color: #007AFF; font-size: 14px; font-weight: 600;")
+        self.now_label.setStyleSheet(
+            "color: #007AFF; font-size: 14px; font-weight: 600;")
         now_layout.addWidget(self.now_label)
 
         self.now_program_label = QLabel("")
@@ -1403,9 +1418,12 @@ class RadioWindow(QMainWindow):
         all_layout.setSpacing(6)
         self.list_widget = QListWidget()
         self.list_widget.setStyleSheet("QListWidget { font-size: 13px; }")
-        self.list_widget.itemDoubleClicked.connect(lambda _: self.play_selected())
-        self.list_widget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.list_widget.customContextMenuRequested.connect(self._show_list_menu)
+        self.list_widget.itemDoubleClicked.connect(
+            lambda _: self.play_selected())
+        self.list_widget.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.CustomContextMenu)
+        self.list_widget.customContextMenuRequested.connect(
+            self._show_list_menu)
         all_layout.addWidget(self.list_widget)
         self.inner_tabs.addTab(all_page, "全部")
 
@@ -1416,9 +1434,12 @@ class RadioWindow(QMainWindow):
         star_layout.setSpacing(6)
         self.star_list_widget = QListWidget()
         self.star_list_widget.setStyleSheet("QListWidget { font-size: 13px; }")
-        self.star_list_widget.itemDoubleClicked.connect(lambda _: self.play_selected())
-        self.star_list_widget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.star_list_widget.customContextMenuRequested.connect(self._show_list_menu)
+        self.star_list_widget.itemDoubleClicked.connect(
+            lambda _: self.play_selected())
+        self.star_list_widget.setContextMenuPolicy(
+            Qt.ContextMenuPolicy.CustomContextMenu)
+        self.star_list_widget.customContextMenuRequested.connect(
+            self._show_list_menu)
         star_layout.addWidget(self.star_list_widget)
         self.inner_tabs.addTab(star_page, "⭐ 星标台")
 
@@ -1459,7 +1480,8 @@ class RadioWindow(QMainWindow):
         # 录制控制
         rec_ctrl_row = QHBoxLayout()
         self.rec_btn = QPushButton("● 开始录制")
-        self.rec_btn.setStyleSheet("QPushButton { color: #d04545; font-weight: bold; }")
+        self.rec_btn.setStyleSheet(
+            "QPushButton { color: #d04545; font-weight: bold; }")
         self.rec_btn.clicked.connect(self._toggle_record)
         rec_ctrl_row.addWidget(self.rec_btn, 1)
         rec_layout.addLayout(rec_ctrl_row)
@@ -1526,7 +1548,8 @@ class RadioWindow(QMainWindow):
         theme_row.addWidget(QLabel("主题"))
         theme_row.addStretch(1)
         _mode = self.settings.value("theme_mode", "auto")
-        _mode_text = {"auto": "跟随系统", "light": "浅色模式", "dark": "深色模式"}.get(_mode, "跟随系统")
+        _mode_text = {"auto": "跟随系统", "light": "浅色模式",
+                      "dark": "深色模式"}.get(_mode, "跟随系统")
         self.theme_btn = QPushButton(_mode_text)
         self.theme_btn.setMinimumWidth(96)
         self.theme_btn.clicked.connect(self._toggle_theme_force)
@@ -1578,7 +1601,10 @@ class RadioWindow(QMainWindow):
 
         about_desc = QLabel(
             "电台内容、音质和连通性由电台来源决定，播放效果与网络环境有关。\n"
-            "录制所得内容请遵守相关版权要求，仅供个人学习使用。"
+            "录制所得内容请遵守相关版权要求，仅供个人学习使用。\n"
+            "内置源仅供开发测试，请在24小时内删除。本程序不保证其内容、连通性。\n"
+            "请您自行添加拥有合法授权的音源。\n"
+            "使用本工具，即代表您已完全阅读并同意下方链接免责声明的内容。"
         )
         about_desc.setWordWrap(True)
         about_desc.setStyleSheet("font-size: 12px;")
@@ -1592,11 +1618,33 @@ class RadioWindow(QMainWindow):
 
         about_link = QLabel(
             "<a href='https://github.com/GZYZhy/stream-radio' "
-            "style='color:#007AFF;'>github.com/GZYZhy/stream-radio</a>"
+            "style='color:#007AFF;'>仓库：GZYZhy/stream-radio</a>"
         )
-        about_link.setOpenExternalLinks(True)
-        about_layout.addWidget(about_link)
 
+        mz_link = QLabel(
+            "<a href='https://github.com/GZYZhy/stream-radio#免责声明' "
+            "style='color:#007AFF;'>免责声明（GitHub）</a>"
+        )
+
+        author_link = QLabel(
+            "<a href='https://www.zdeweb.cn' "
+            "style='color:#007AFF;'>开发者博客</a>"
+        )
+
+        author_gh_link = QLabel(
+            "<a href='https://github.com/GZYZhy' "
+            "style='color:#007AFF;'>开发者GitHub</a>"
+        )
+
+        about_link.setOpenExternalLinks(True)
+        mz_link.setOpenExternalLinks(True)
+        author_link.setOpenExternalLinks(True)
+        author_gh_link.setOpenExternalLinks(True)
+
+        about_layout.addWidget(about_link)
+        about_layout.addWidget(mz_link)
+        about_layout.addWidget(author_link)
+        about_layout.addWidget(author_gh_link)
         about_layout.addStretch(1)
 
         about_base = QLabel("基于 PyQt6")
@@ -1704,14 +1752,17 @@ class RadioWindow(QMainWindow):
         presets = [10, 15, 30, 45, 60, 90, 120]
         for m in presets:
             act = QAction(f"{m} 分钟后停止", self)
-            act.triggered.connect(lambda _checked=False, mm=m: self.set_sleep_timer(mm))
+            act.triggered.connect(lambda _checked=False,
+                                  mm=m: self.set_sleep_timer(mm))
             menu.addAction(act)
         menu.addSeparator()
         custom_act = QAction("自定义…", self)
-        custom_act.triggered.connect(lambda _checked=False: self._custom_sleep_timer())
+        custom_act.triggered.connect(
+            lambda _checked=False: self._custom_sleep_timer())
         menu.addAction(custom_act)
         cancel_act = QAction("取消定时", self)
-        cancel_act.triggered.connect(lambda _checked=False: self.set_sleep_timer(0))
+        cancel_act.triggered.connect(
+            lambda _checked=False: self.set_sleep_timer(0))
         menu.addAction(cancel_act)
         return menu
 
@@ -1777,7 +1828,8 @@ class RadioWindow(QMainWindow):
             # Windows/Linux 用 Qt 的 palette 判断
             from PyQt6.QtGui import QGuiApplication
             palette = QGuiApplication.palette()
-            window = palette.color(palette.ColorGroup.Active, palette.ColorRole.Window)
+            window = palette.color(
+                palette.ColorGroup.Active, palette.ColorRole.Window)
             return window.lightness() < 128
 
     def _apply_theme(self):
@@ -2047,7 +2099,8 @@ class RadioWindow(QMainWindow):
             self._last_is_dark = is_dark
             self._apply_theme()
             # 重新应用特殊颜色
-            self.now_label.setStyleSheet(f"color: #007AFF; font-size: 14px; font-weight: 500;")
+            self.now_label.setStyleSheet(
+                f"color: #007AFF; font-size: 14px; font-weight: 500;")
 
     def _toggle_theme_force(self):
         """切换主题按钮（跟随系统 / 强制浅色 / 强制深色）"""
@@ -2115,11 +2168,16 @@ class RadioWindow(QMainWindow):
                 slot()
             return _run
 
-        QShortcut(QKeySequence(Qt.Key.Key_Up), self, activated=_guard(self.prev))
-        QShortcut(QKeySequence(Qt.Key.Key_Down), self, activated=_guard(self.next))
-        QShortcut(QKeySequence(Qt.Key.Key_Space), self, activated=_guard(self._toggle_play))
-        QShortcut(QKeySequence(Qt.Key.Key_Return), self, activated=_guard(self.play_selected))
-        QShortcut(QKeySequence(Qt.Key.Key_Enter), self, activated=_guard(self.play_selected))
+        QShortcut(QKeySequence(Qt.Key.Key_Up),
+                  self, activated=_guard(self.prev))
+        QShortcut(QKeySequence(Qt.Key.Key_Down),
+                  self, activated=_guard(self.next))
+        QShortcut(QKeySequence(Qt.Key.Key_Space), self,
+                  activated=_guard(self._toggle_play))
+        QShortcut(QKeySequence(Qt.Key.Key_Return), self,
+                  activated=_guard(self.play_selected))
+        QShortcut(QKeySequence(Qt.Key.Key_Enter), self,
+                  activated=_guard(self.play_selected))
         # 组合快捷键（⌘N/⌘O/⌘R/⌫ 等）已由菜单栏 QAction 提供，此处不再重复绑定，
         # 避免同一按键被两个 shortcut 捕获造成双重触发
 
@@ -2230,7 +2288,8 @@ class RadioWindow(QMainWindow):
             p.drawEllipse(1, 1, 30, 30)
 
             # 白色天线/音符（简化的收音机符号：两道弧）
-            p.setPen(QPen(QColor("white"), 2.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+            p.setPen(QPen(QColor("white"), 2.5,
+                     Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
             p.drawArc(6, 10, 20, 16, 45 * 16, 90 * 16)
             p.drawArc(10, 14, 12, 8, 45 * 16, 90 * 16)
 
@@ -2396,12 +2455,14 @@ class RadioWindow(QMainWindow):
 
         vol_up_act = QAction("音量增大", self)
         vol_up_act.setShortcut(QKeySequence("Ctrl+="))
-        vol_up_act.triggered.connect(lambda: self.vol_slider.setValue(self.vol_slider.value() + 5))
+        vol_up_act.triggered.connect(
+            lambda: self.vol_slider.setValue(self.vol_slider.value() + 5))
         play_menu.addAction(vol_up_act)
 
         vol_down_act = QAction("音量减小", self)
         vol_down_act.setShortcut(QKeySequence("Ctrl+-"))
-        vol_down_act.triggered.connect(lambda: self.vol_slider.setValue(self.vol_slider.value() - 5))
+        vol_down_act.triggered.connect(
+            lambda: self.vol_slider.setValue(self.vol_slider.value() - 5))
         play_menu.addAction(vol_down_act)
 
         # 设置菜单
@@ -2447,7 +2508,8 @@ class RadioWindow(QMainWindow):
         # 订阅“系统音频设备列表变化”，并在外接音响接入/断开时自动刷新
         try:
             from PyQt6.QtMultimedia import QMediaDevices
-            QMediaDevices.audioOutputsChanged.connect(self._on_audio_devices_changed)
+            QMediaDevices.audioOutputsChanged.connect(
+                self._on_audio_devices_changed)
         except Exception as e:
             log.warning("_init_player: 无法订阅音频设备变化: %s", e)
 
@@ -2682,7 +2744,8 @@ class RadioWindow(QMainWindow):
         elif lunar_day == 30:
             day_str = "三十"
         else:
-            day_str = day_tens[(lunar_day - 1) // 10] + day_ones[(lunar_day - 1) % 10]
+            day_str = day_tens[(lunar_day - 1) // 10] + \
+                day_ones[(lunar_day - 1) % 10]
 
         return f"{year_name}{month_str}{day_str}"
 
@@ -2693,7 +2756,8 @@ class RadioWindow(QMainWindow):
         for w in (self.list_widget, self.star_list_widget):
             for i in range(w.count()):
                 item = w.item(i)
-                item.setHidden(bool(keyword) and keyword not in item.text().lower())
+                item.setHidden(
+                    bool(keyword) and keyword not in item.text().lower())
 
     def _refresh_list(self):
         """刷新列表显示（全部 + 星标台）：带序号，星标的电台带 ★ 前缀"""
@@ -2702,13 +2766,15 @@ class RadioWindow(QMainWindow):
         self.star_list_widget.clear()
         for i, (name, url) in enumerate(self.radios):
             starred = url in self._starred_urls
-            item = QListWidgetItem(f"{i + 1}. " + ("★ " if starred else "") + name)
+            item = QListWidgetItem(
+                f"{i + 1}. " + ("★ " if starred else "") + name)
             item.setToolTip(url)
             self.list_widget.addItem(item)
             if starred:
                 # 星标台内按自身顺序标号
                 star_no = self.star_list_widget.count() + 1
-                self.star_list_widget.addItem(QListWidgetItem(f"{star_no}. ★ " + name))
+                self.star_list_widget.addItem(
+                    QListWidgetItem(f"{star_no}. ★ " + name))
         log.info("_refresh_list: 已刷新，全部 %d 个，星标 %d 个",
                  self.list_widget.count(), self.star_list_widget.count())
         if 0 <= current < len(self.radios):
@@ -2776,7 +2842,8 @@ class RadioWindow(QMainWindow):
         # 恢复选中
         if self.inner_tabs.currentIndex() == 1:
             if url in self._starred_urls:
-                self.star_list_widget.setCurrentRow(self._starred_indices().index(index))
+                self.star_list_widget.setCurrentRow(
+                    self._starred_indices().index(index))
         else:
             self.list_widget.setCurrentRow(index)
 
@@ -2942,7 +3009,8 @@ class RadioWindow(QMainWindow):
         if row < 0:
             return
         old_name, url = self.radios[row]
-        new_name, ok = QInputDialog.getText(self, "重命名电台", "新名称：", text=old_name)
+        new_name, ok = QInputDialog.getText(
+            self, "重命名电台", "新名称：", text=old_name)
         if ok and new_name.strip() and new_name.strip() != old_name:
             self.radios[row] = (new_name.strip(), url)
             self._refresh_list()
@@ -2959,7 +3027,8 @@ class RadioWindow(QMainWindow):
         if row < 0:
             return
         name, old_url = self.radios[row]
-        new_url, ok = QInputDialog.getText(self, "修改电台地址", "新地址 (URL)：", text=old_url)
+        new_url, ok = QInputDialog.getText(
+            self, "修改电台地址", "新地址 (URL)：", text=old_url)
         if ok and new_url.strip() and new_url.strip() != old_url:
             self.radios[row] = (name, new_url.strip())
             self._refresh_list()
@@ -3027,7 +3096,8 @@ class RadioWindow(QMainWindow):
         dlg = ImportDialog(existing_urls=existing_urls, parent=self)
         log.info("import_stations: ImportDialog 创建成功，开始 exec")
         result = dlg.exec()
-        log.info("import_stations: 对话框结果=%s（Accepted=%s）", result, QDialog.DialogCode.Accepted)
+        log.info("import_stations: 对话框结果=%s（Accepted=%s）",
+                 result, QDialog.DialogCode.Accepted)
         if result != QDialog.DialogCode.Accepted:
             return
 
@@ -3054,7 +3124,8 @@ class RadioWindow(QMainWindow):
         # 处理订阅
         sub_info = dlg.get_subscription_info()
         if sub_info:
-            self._add_subscription(sub_info["url"], sub_info["interval_minutes"])
+            self._add_subscription(
+                sub_info["url"], sub_info["interval_minutes"])
             sub_count = len(self._get_subscriptions())
             QMessageBox.information(
                 self, "导入完成",
@@ -3074,7 +3145,8 @@ class RadioWindow(QMainWindow):
             return []
 
     def _save_subscriptions(self, subs):
-        self.settings.setValue("subscriptions", json.dumps(subs, ensure_ascii=False))
+        self.settings.setValue(
+            "subscriptions", json.dumps(subs, ensure_ascii=False))
 
     def _add_subscription(self, url, interval_minutes, name=None):
         subs = self._get_subscriptions()
@@ -3197,7 +3269,8 @@ class RadioWindow(QMainWindow):
         """管理订阅对话框（简单版：列表 + 删除 + 修改间隔）"""
         subs = self._get_subscriptions()
         if not subs:
-            QMessageBox.information(self, "订阅管理", "当前没有订阅\n\n导入网络 m3u 时勾选「定时更新」即可添加订阅")
+            QMessageBox.information(
+                self, "订阅管理", "当前没有订阅\n\n导入网络 m3u 时勾选「定时更新」即可添加订阅")
             return
 
         # 用简单的输入对话框管理：列出订阅，可选择删除
@@ -3351,7 +3424,8 @@ class RadioWindow(QMainWindow):
         if self.record_proc:
             log.info("play: 正在录制，先停止录制")
             self._stop_record()
-            self.rec_timer_label.setText(self.rec_timer_label.text() + "\n（换台已停止录制）")
+            self.rec_timer_label.setText(
+                self.rec_timer_label.text() + "\n（换台已停止录制）")
 
         # 换台：停止上一个 ICY / status-json 线程，清空上次的节目显示
         self._stop_icy_fetcher()
@@ -3372,7 +3446,8 @@ class RadioWindow(QMainWindow):
         self.player.stop()
         self.player.setSource(QUrl(url))
         self.player.play()
-        log.info("play: 已调用 setSource + play，当前 playbackState=%s", self.player.playbackState())
+        log.info("play: 已调用 setSource + play，当前 playbackState=%s",
+                 self.player.playbackState())
 
         # 直连音频流（非 m3u8）：后台线程抓 ICY 元数据，实时显示节目
         if not url.lower().split("?", 1)[0].endswith(".m3u8"):
@@ -3407,12 +3482,15 @@ class RadioWindow(QMainWindow):
         """播放 1.5 秒后复查媒体/播放状态，用于排查无声问题"""
         try:
             log.info("播放状态复查: URL=%s", url)
-            log.info("    playbackState=%s", _enum_info(self.player.playbackState()))
-            log.info("    mediaStatus=%s", _enum_info(self.player.mediaStatus()))
+            log.info("    playbackState=%s", _enum_info(
+                self.player.playbackState()))
+            log.info("    mediaStatus=%s", _enum_info(
+                self.player.mediaStatus()))
             log.info("    error=%s", _enum_info(self.player.error()))
             log.info("    errorString=%s", self.player.errorString())
             log.info("    hasAudio=%s", self.player.hasAudio())
-            log.info("    audioOutput volume=%.2f，muted=%s", self.audio_output.volume(), self.audio_output.isMuted())
+            log.info("    audioOutput volume=%.2f，muted=%s",
+                     self.audio_output.volume(), self.audio_output.isMuted())
         except Exception:
             log.exception("播放状态复查失败")
 
@@ -3435,7 +3513,8 @@ class RadioWindow(QMainWindow):
 
         if self.record_proc:
             self._stop_record()
-            self.rec_timer_label.setText(self.rec_timer_label.text() + "\n（停止播放已结束录制）")
+            self.rec_timer_label.setText(
+                self.rec_timer_label.text() + "\n（停止播放已结束录制）")
 
         # 停止播放时取消定时停播
         if self.sleep_timer:
@@ -3491,8 +3570,10 @@ class RadioWindow(QMainWindow):
         """启动 Icecast status-json 抓取线程（所有台都尝试一次）"""
         try:
             self._status_fetcher = IcecastStatusFetcher(url)
-            self._status_fetcher.program_updated.connect(self._on_status_program)
-            self._status_fetcher.quality_updated.connect(self._on_status_quality)
+            self._status_fetcher.program_updated.connect(
+                self._on_status_program)
+            self._status_fetcher.quality_updated.connect(
+                self._on_status_quality)
             self._status_fetcher.start()
         except Exception:
             self._status_fetcher = None
@@ -3503,8 +3584,10 @@ class RadioWindow(QMainWindow):
         if self._status_fetcher is None:
             return
         try:
-            self._status_fetcher.program_updated.disconnect(self._on_status_program)
-            self._status_fetcher.quality_updated.disconnect(self._on_status_quality)
+            self._status_fetcher.program_updated.disconnect(
+                self._on_status_program)
+            self._status_fetcher.quality_updated.disconnect(
+                self._on_status_quality)
         except Exception:
             pass
         self._status_fetcher.stop()
@@ -3565,7 +3648,8 @@ class RadioWindow(QMainWindow):
         """Qt 元数据兜底：只提供编码 + 码率（PyQt6 无采样率/声道字段）。"""
         from PyQt6.QtMultimedia import QMediaMetaData
         q = {}
-        codec = self._normalize_codec(md.stringValue(QMediaMetaData.Key.AudioCodec))
+        codec = self._normalize_codec(
+            md.stringValue(QMediaMetaData.Key.AudioCodec))
         if codec:
             q["codec"] = codec
         br = md.value(QMediaMetaData.Key.AudioBitRate)  # bps
@@ -3596,7 +3680,8 @@ class RadioWindow(QMainWindow):
         if status in (QMediaPlayer.MediaStatus.BufferingMedia,
                       QMediaPlayer.MediaStatus.BufferedMedia):
             self._latency_recorded = True
-            self._quality["latency"] = int((time.monotonic() - self._latency_start) * 1000)
+            self._quality["latency"] = int(
+                (time.monotonic() - self._latency_start) * 1000)
             self._update_quality_label()
 
     def _update_quality_label(self):
@@ -3614,7 +3699,8 @@ class RadioWindow(QMainWindow):
                            ("samplerate", "samplerate"), ("channels", "channels")):
             if q.get(key):
                 parts.append(self._fmt_value(label, q[key]))
-        html = " · ".join(f"<span style='color:{muted};'>{p}</span>" for p in parts)
+        html = " · ".join(
+            f"<span style='color:{muted};'>{p}</span>" for p in parts)
         if q.get("latency") is not None:
             html += (f" · <span style='color:{muted};'>延迟</span> "
                      f"<span style='color:{self._latency_color(q['latency'])}; font-weight:600;'>"
@@ -3698,7 +3784,8 @@ class RadioWindow(QMainWindow):
         self.play(idx)
 
     def _toggle_play(self):
-        log.info("_toggle_play 调用，当前 is_playing=%s，current_index=%d", self.is_playing, self.current_index)
+        log.info("_toggle_play 调用，当前 is_playing=%s，current_index=%d",
+                 self.is_playing, self.current_index)
         if self.is_playing:
             self.player.pause()
             self.is_playing = False
@@ -3708,7 +3795,8 @@ class RadioWindow(QMainWindow):
             if self.record_proc:
                 self._was_recording = True
                 self._stop_record()
-                self.rec_timer_label.setText(self.rec_timer_label.text() + "\n（播放暂停，录制已暂停）")
+                self.rec_timer_label.setText(
+                    self.rec_timer_label.text() + "\n（播放暂停，录制已暂停）")
             else:
                 self._was_recording = False
             self._update_system_media()
@@ -3759,7 +3847,8 @@ class RadioWindow(QMainWindow):
                     parts.append(artist)
                 if title and title != artist:
                     parts.append(title)
-                display_title = " — ".join(parts) if parts else (title or artist)
+                display_title = " — ".join(
+                    parts) if parts else (title or artist)
                 display_artist = name
             else:
                 # 没有节目信息：维持原状，电台名作为标题
@@ -3780,14 +3869,16 @@ class RadioWindow(QMainWindow):
         self.settings.setValue("volume", val)
 
     def _on_error(self, error, error_string):
-        log.error("播放出错: error=%s，errorString=%s", _enum_info(error), error_string)
+        log.error("播放出错: error=%s，errorString=%s",
+                  _enum_info(error), error_string)
         self.now_label.setText("⚠ 播放出错")
         self.now_label.setStyleSheet("color: #d04545; font-size: 14px;")
         QTimer.singleShot(3000, self._reset_now_style)
 
     def _on_media_status(self, status):
         """媒体状态变化（用于更新系统媒体信息）"""
-        log.info("媒体状态变化: %s，当前源=%s", _enum_info(status), self.player.source().toString())
+        log.info("媒体状态变化: %s，当前源=%s", _enum_info(
+            status), self.player.source().toString())
         self._measure_latency(status)
         self._update_system_media()
 
@@ -3880,7 +3971,8 @@ class RadioWindow(QMainWindow):
         self._rec_start_time = datetime.now().strftime("%H%M%S")
         self._rec_dir = rec_dir
 
-        tmp_file = os.path.join(rec_dir, f"{safe_name}_{self._rec_start_time}.mp3")
+        tmp_file = os.path.join(
+            rec_dir, f"{safe_name}_{self._rec_start_time}.mp3")
 
         cmd = [
             ffmpeg_path, "-y",
@@ -3916,9 +4008,11 @@ class RadioWindow(QMainWindow):
 
         self.record_start_time = time.time()
         self.rec_btn.setText("■ 停止录制")
-        self.rec_btn.setStyleSheet("QPushButton { color: #007AFF; font-weight: bold; }")
+        self.rec_btn.setStyleSheet(
+            "QPushButton { color: #007AFF; font-weight: bold; }")
 
-        self.rec_timer_label.setStyleSheet("color: #d04545; font-size: 13px; font-weight: bold;")
+        self.rec_timer_label.setStyleSheet(
+            "color: #d04545; font-size: 13px; font-weight: bold;")
         self._rec_timer = QTimer(self)
         self._rec_timer.timeout.connect(self._update_rec_timer)
         self._rec_timer.start(100)
@@ -3968,7 +4062,8 @@ class RadioWindow(QMainWindow):
         # 文件名：电台名_开始时间-结束时间.mp3（同一天不加日期）
         end_time = datetime.now().strftime("%H%M%S")
         end_date = datetime.now().strftime("%m%d")
-        tmp_file = os.path.join(self._rec_dir, f"{self._rec_safe_name}_{self._rec_start_time}.mp3")
+        tmp_file = os.path.join(
+            self._rec_dir, f"{self._rec_safe_name}_{self._rec_start_time}.mp3")
 
         if end_date == self._rec_start_date:
             final_file = os.path.join(
@@ -3985,7 +4080,8 @@ class RadioWindow(QMainWindow):
             try:
                 os.rename(tmp_file, final_file)
                 size_mb = os.path.getsize(final_file) / 1024 / 1024
-                self.rec_timer_label.setText(f"已保存：{os.path.basename(final_file)}\n({size_mb:.1f} MB)")
+                self.rec_timer_label.setText(
+                    f"已保存：{os.path.basename(final_file)}\n({size_mb:.1f} MB)")
             except Exception as e:
                 self.rec_timer_label.setText(f"保存失败：{e}")
         else:
@@ -3993,7 +4089,8 @@ class RadioWindow(QMainWindow):
 
         self.rec_timer_label.setStyleSheet("color: #888; font-size: 13px;")
         self.rec_btn.setText("● 开始录制")
-        self.rec_btn.setStyleSheet("QPushButton { color: #d04545; font-weight: bold; }")
+        self.rec_btn.setStyleSheet(
+            "QPushButton { color: #d04545; font-weight: bold; }")
 
         self.record_start_time = None
         self.record_name = None
@@ -4070,7 +4167,8 @@ class RadioWindow(QMainWindow):
         )
 
         btn_min = dlg.addButton("最小化到托盘", QMessageBox.ButtonRole.AcceptRole)
-        btn_quit = dlg.addButton("完全退出", QMessageBox.ButtonRole.DestructiveRole)
+        btn_quit = dlg.addButton(
+            "完全退出", QMessageBox.ButtonRole.DestructiveRole)
         btn_cancel = dlg.addButton("取消", QMessageBox.ButtonRole.RejectRole)
         dlg.setDefaultButton(btn_min)
 
@@ -4104,9 +4202,11 @@ def _user_m3u_path():
     否则 save_radios 会因无写权限失败。
     """
     if sys.platform == "darwin":
-        base = os.path.join(os.path.expanduser("~"), "Library", "Application Support", "网络电台")
+        base = os.path.join(os.path.expanduser(
+            "~"), "Library", "Application Support", "网络电台")
     elif sys.platform == "win32":
-        base = os.path.join(os.environ.get("APPDATA") or os.path.expanduser("~"), "网络电台")
+        base = os.path.join(os.environ.get("APPDATA")
+                            or os.path.expanduser("~"), "网络电台")
     else:
         base = os.path.join(os.path.expanduser("~"), ".local", "share", "网络电台")
     try:
@@ -4128,17 +4228,20 @@ def _resolve_m3u_path():
         log.info("_resolve_m3u_path(脚本): 找到 %s", p)
         if p:
             return p
-        p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "radio.m3u")
+        p = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), "radio.m3u")
         log.info("_resolve_m3u_path(脚本): 未找到，改用脚本目录 %s", p)
         return p
 
     bundled = None
     if getattr(sys, "_MEIPASS", None):
         bundled = os.path.join(sys._MEIPASS, "radio.m3u")
-    log.info("_resolve_m3u_path(打包): 内置列表=%s，存在=%s", bundled, bool(bundled and os.path.exists(bundled)))
+    log.info("_resolve_m3u_path(打包): 内置列表=%s，存在=%s", bundled,
+             bool(bundled and os.path.exists(bundled)))
 
     user_path = _user_m3u_path()
-    log.info("_resolve_m3u_path(打包): 用户列表=%s，存在=%s", user_path, os.path.exists(user_path))
+    log.info("_resolve_m3u_path(打包): 用户列表=%s，存在=%s",
+             user_path, os.path.exists(user_path))
 
     if os.path.exists(user_path):
         log.info("_resolve_m3u_path(打包): 使用已有用户列表 %s", user_path)
@@ -4182,10 +4285,12 @@ def main():
             # 完全没有列表文件：创建一个空的（带示例注释）
             log.warning("main: %s 不存在，准备创建空列表", m3u_path)
             try:
-                os.makedirs(os.path.dirname(os.path.abspath(m3u_path)), exist_ok=True)
+                os.makedirs(os.path.dirname(
+                    os.path.abspath(m3u_path)), exist_ok=True)
                 with open(m3u_path, "w", encoding="utf-8") as f:
                     f.write("#EXTM3U\n")
-                    f.write(f"#Update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                    f.write(
+                        f"#Update: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                     f.write("# 示例：\n")
                     f.write("#EXTINF:-1,中央人民广播电台 音乐之声\n")
                     f.write("#https://example.com/stream.mp3\n")
