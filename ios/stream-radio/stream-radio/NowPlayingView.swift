@@ -9,6 +9,8 @@ struct NowPlayingView: View {
     @State private var showingSleepMenu = false
     @State private var showingCustomSleep = false
     @State private var customMinutes = ""
+    /// 质量说明弹窗
+    @State private var showingQualityHelp = false
 
     /// 可选的定时停播时长（分钟）
     private let presetMinutes = [10, 15, 30, 45, 60, 90, 120]
@@ -26,6 +28,14 @@ struct NowPlayingView: View {
         let m = seconds / 60
         let s = seconds % 60
         return String(format: "%02d:%02d", m, s)
+    }
+
+    /// 延迟毫秒 → 颜色：绿 <150 / 黄 150-299 / 橙 300-599 / 红 ≥600
+    static func latencyColor(_ ms: Int) -> Color {
+        if ms < 150 { return Color(red: 0.204, green: 0.780, blue: 0.349) }   // #34c759
+        if ms < 300 { return Color(red: 1.000, green: 0.800, blue: 0.000) }   // #ffcc00
+        if ms < 600 { return Color(red: 1.000, green: 0.584, blue: 0.000) }   // #ff9500
+        return Color(red: 1.000, green: 0.231, blue: 0.188)                   // #ff3b30
     }
 
     var body: some View {
@@ -54,6 +64,24 @@ struct NowPlayingView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .monospacedDigit()
+                    // 播放质量（与日期同一样式）：编码 · 码率 · 采样率 · 声道 · 延迟
+                    if let q = player.audioQuality, !q.summary.isEmpty {
+                        HStack(spacing: 6) {
+                            Text(q.summary)
+                            if let latency = player.latencyMs {
+                                Text("延迟 \(latency) ms")
+                                    .foregroundStyle(Self.latencyColor(latency))
+                            }
+                            Button { showingQualityHelp = true } label: {
+                                Image(systemName: "questionmark.circle")
+                                    .foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                    }
                     if let remaining = player.sleepTimerRemaining {
                         Label("定时停播 \(Self.formatRemaining(remaining))",
                               systemImage: "timer")
@@ -146,6 +174,11 @@ struct NowPlayingView: View {
             }
         } message: {
             Text("输入分钟数（例如 25）")
+        }
+        .alert("质量说明", isPresented: $showingQualityHelp) {
+            Button("知道了", role: .cancel) { }
+        } message: {
+            Text("质量由电台来源和网络环境决定")
         }
     }
 }

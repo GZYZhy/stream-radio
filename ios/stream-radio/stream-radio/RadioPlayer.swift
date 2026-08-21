@@ -1,7 +1,41 @@
 import AVFoundation
+import CoreMedia
 import MediaPlayer
 import Observation
 import UIKit
+
+// 音频质量信息（由音轨格式 / 码率 / 采样率 / 声道汇总）
+struct AudioQuality: Equatable {
+    var codec: String?
+    var bitrateKbps: Int?
+    var sampleRateHz: Int?
+    var channelCount: Int?
+
+    /// 展示摘要：未知字段省略，用 · 连接（如 "MP3 · 128 kbps · 44.1 kHz · 立体声"）
+    var summary: String {
+        var parts: [String] = []
+        if let codec { parts.append(codec) }
+        if let bitrateKbps { parts.append("\(bitrateKbps) kbps") }
+        if let sampleRateHz { parts.append(Self.formatSampleRate(sampleRateHz)) }
+        if let channelCount { parts.append(Self.channelText(channelCount)) }
+        return parts.joined(separator: " · ")
+    }
+
+    var isEmpty: Bool { summary.isEmpty }
+
+    static func formatSampleRate(_ hz: Int) -> String {
+        if hz % 1000 == 0 { return "\(hz / 1000) kHz" }
+        return String(format: "%g kHz", Double(hz) / 1000)
+    }
+
+    static func channelText(_ n: Int) -> String {
+        switch n {
+        case 1: return "单声道"
+        case 2: return "立体声"
+        default: return "\(n) 声道"
+        }
+    }
+}
 
 // 播放器：AVPlayer 播放 + 流内元数据节目信息 + 锁屏控制中心
 @MainActor
@@ -11,6 +45,10 @@ final class PlayerManager {
     var isPlaying = false
     var programTitle: String?
     var errorMessage: String?
+    /// 播放质量（编码/码率/采样率/声道）
+    var audioQuality: AudioQuality?
+    /// 启动/缓冲延迟（毫秒，nil 表示未测到）
+    var latencyMs: Int?
 
     // ---- 定时停播 ----
     /// 剩余秒数（nil 表示未设置）
@@ -22,6 +60,9 @@ final class PlayerManager {
     private var statusObserver: NSKeyValueObservation?
     private var metadataOutput: AVPlayerItemMetadataOutput?
     private var metadataDelegate: MetadataDelegate?
+    /// 测延迟用：播放发起时刻与首次可播状态观察
+    private var latencyStart: Date?
+    private var timeControlObserver: NSKeyValueObservation?
 
     /// 控制中心切台时取电台列表（由 App 注入）
     var stationProvider: (() -> [Station])?
@@ -79,6 +120,10 @@ final class PlayerManager {
         currentStation = station
         programTitle = nil
         errorMessage = nil
+        // 重置质量并开始测启动/缓冲延迟
+        audioQuality = nil
+        latencyMs = nil
+        latencyStart = Date()
         guard let url = URL(string: station.url) else {
             errorMessage = "无效的播放地址"
             return
@@ -114,10 +159,100 @@ final class PlayerManager {
         metadataDelegate = delegate
         metadataOutput = output
 
+        // 观察首次进入可播状态（.playing），用于计算启动/缓冲延迟
+        timeControlObserver?.invalidate()
+        timeControlObserver = player.observe(\AVPlayer.timeControlStatus, options: [.new]) { [weak self] player, _ in
+            guard player.timeControlStatus == .playing else { return }
+            Task { @MainActor in self?.measureLatencyIfNeeded() }
+        }
+
         player.replaceCurrentItem(with: item)
         player.play()
         isPlaying = true
         updateNowPlaying()
+
+        // 后台读取音轨格式：编码 / 采样率 / 声道 / 码率（最多等约 3 秒）
+        Task { [weak self] in
+            await self?.loadAudioQuality(for: asset)
+        }
+    }
+
+    /// 等音轨就绪后提取质量字段；网络流元数据可能延迟填充，最多重试约 8 秒。
+    /// 多来源放宽：实际播放音轨格式描述 → asset 静态音轨 → 访问日志码率 → 估计数据率。
+    private func loadAudioQuality(for asset: AVURLAsset) async {
+        let deadline = Date().addingTimeInterval(8)
+        while Date() < deadline {
+            var q = AudioQuality()
+            // 音轨格式描述：优先实际播放音轨（HLS 缓冲后必填），其次 asset 静态音轨
+            var audioTrack: AVAssetTrack?
+            if let live = player.currentItem?.tracks.compactMap(\.assetTrack)
+                .first(where: { $0.mediaType == .audio }) {
+                audioTrack = live
+            } else {
+                audioTrack = try? await asset.loadTracks(withMediaType: .audio).first
+            }
+            if let audioTrack,
+               let desc = try? await audioTrack.load(.formatDescriptions).first {
+                q.codec = Self.fourCCName(CMFormatDescriptionGetMediaSubType(desc))
+                if let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(desc)?.pointee {
+                    q.sampleRateHz = Int(asbd.mSampleRate)
+                    q.channelCount = Int(asbd.mChannelsPerFrame)
+                }
+            }
+            // 码率：优先实际音轨估计数据率（字节/秒），accessLog 兜底（位/秒，实际解码报告）
+            if q.bitrateKbps == nil {
+                var bitrateBits = 0
+                if let liveTrack = player.currentItem?.tracks.compactMap(\.assetTrack)
+                    .first(where: { $0.mediaType == .audio }),
+                   let rate = try? await liveTrack.load(.estimatedDataRate), rate > 0 {
+                    bitrateBits = Int(rate * 8)
+                } else if let item = player.currentItem {
+                    let log: AVPlayerItemAccessLog?
+                    if #available(iOS 27, *) {
+                        log = await withCheckedContinuation { cont in
+                            item.fetchAccessLog(completionHandler: { l in cont.resume(returning: l) })
+                        }
+                    } else {
+                        log = item.accessLog()
+                    }
+                    if let ev = log?.events.last, ev.indicatedBitrate > 0 {
+                        bitrateBits = Int(ev.indicatedBitrate)
+                    }
+                }
+                if bitrateBits > 0 { q.bitrateKbps = max(1, bitrateBits / 1000) }
+            }
+            // 任一字段到手即可显示（编码/采样率/声道/码率都行）
+            if !q.isEmpty {
+                audioQuality = q
+                return
+            }
+            try? await Task.sleep(nanoseconds: 300_000_000)
+        }
+    }
+
+    /// 首次进入可播状态时记录启动/缓冲延迟（毫秒），只记一次
+    private func measureLatencyIfNeeded() {
+        guard latencyMs == nil, let start = latencyStart else { return }
+        latencyMs = Int(Date().timeIntervalSince(start) * 1000)
+    }
+
+    /// 音频格式四字码 → 展示名（未知则回退为四字码字符串）
+    static func fourCCName(_ code: FourCharCode) -> String {
+        switch code {
+        case 0x6D703320: return "MP3"     // 'mp3 '
+        case 0x2E6D7033: return "MP3"     // '.mp3'
+        case 0x6D70346D: return "MP3"     // 'mp4m'
+        case 0x61616320: return "AAC"     // 'aac '
+        case 0x61616364: return "AAC"     // 'aacd'
+        case 0x6F707573: return "Opus"    // 'opus'
+        case 0x664C6143: return "FLAC"    // 'fLaC'
+        case 0x616C6163: return "ALAC"    // 'alac'
+        case 0x6C70636D: return "PCM"     // 'lpcm'
+        default:
+            return String(format: "%c%c%c%c",
+                          (code >> 24) & 0xFF, (code >> 16) & 0xFF,
+                          (code >> 8) & 0xFF, code & 0xFF)
+        }
     }
 
     func toggle() {
@@ -138,6 +273,11 @@ final class PlayerManager {
         statusObserver = nil
         metadataDelegate = nil
         metadataOutput = nil
+        timeControlObserver?.invalidate()
+        timeControlObserver = nil
+        audioQuality = nil
+        latencyMs = nil
+        latencyStart = nil
         player.pause()
         player.replaceCurrentItem(with: nil)
         isPlaying = false

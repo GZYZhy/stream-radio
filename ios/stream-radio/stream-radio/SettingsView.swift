@@ -151,6 +151,11 @@ struct SettingsView: View {
 
 // 关于页：应用图标 + 信息（图标资源在 Assets 的 app-icon）
 struct AboutView: View {
+    /// 从 Info.plist 读取版本号，避免硬编码遗漏
+    static let appVersion: String = {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
+    }()
+
     var body: some View {
         List {
             Section {
@@ -162,7 +167,7 @@ struct AboutView: View {
                         .padding(.top, 28)
                     Text("网络电台")
                         .font(.title2.bold())
-                    Text("版本 1.2 (iOS)")
+                    Text("版本 \(Self.appVersion) (iOS)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Text("MIT License")

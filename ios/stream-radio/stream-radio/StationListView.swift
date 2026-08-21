@@ -87,6 +87,9 @@ struct StationListView: View {
     @State private var showingImport = false
     @State private var importCandidates: [Station] = []
     @State private var showingImportPreview = false
+    /// 导入失败时的错误信息（解析/读取失败弹窗提示，不静默）
+    @State private var importError: String?
+    @State private var showingImportError = false
     @State private var showingAdd = false
     @Binding var showingPlayer: Bool
     @State private var newName = ""
@@ -144,10 +147,6 @@ struct StationListView: View {
             Button("保存") { store.update(station, name: editName, url: editURL) }
                 .disabled(editName.trimmingCharacters(in: .whitespaces).isEmpty)
         }
-        .fileImporter(isPresented: $showingImport,
-                      allowedContentTypes: [.m3uPlaylist, .plainText, .data]) { result in
-            importM3U(from: result)
-        }
         .sheet(isPresented: $showingImportPreview) {
             ImportPreviewView(candidates: importCandidates, store: store) { chosen in
                 store.importSelected(chosen)
@@ -158,6 +157,26 @@ struct StationListView: View {
             if player.currentStation != nil {
                 MiniPlayerBubble { showingPlayer = true }
             }
+        }
+        // 文件选择器：用 UIKit 原生 UIDocumentPickerViewController。
+        // （SwiftUI fileImporter 在 iOS 17 真机、挂 NavigationSplitView 内层时，
+        //   选中文件后 completion 可能不触发，表现为「点选后没反应」；
+        //   改用原生组件走 delegate 回调，不依赖 SwiftUI 视图树，最稳。）
+        // 允许选择任意类型文件（UTType.item），解析不了会明确弹错。
+        .fullScreenCover(isPresented: $showingImport) {
+            DocumentPicker { url in
+                showingImport = false
+                if let url {
+                    // 等全屏选择器收起后再处理，避免与预览弹窗的 present 动画冲突
+                    DispatchQueue.main.async { importM3U(from: url) }
+                }
+            }
+            .ignoresSafeArea()
+        }
+        .alert("导入失败", isPresented: $showingImportError) {
+            Button("好", role: .cancel) { }
+        } message: {
+            Text(importError ?? "")
         }
     }
 
@@ -183,16 +202,67 @@ struct StationListView: View {
         newURL = ""
     }
 
-    private func importM3U(from result: Result<URL, Error>) {
-        guard case .success(let url) = result else { return }
+    /// 读取并解析用户选择的 m3u 文件；任何一步失败都弹窗报错，不静默
+    private func importM3U(from url: URL) {
         let accessing = url.startAccessingSecurityScopedResource()
         defer { if accessing { url.stopAccessingSecurityScopedResource() } }
-        // UTF-8 优先，latin1 兜底（部分文件是其他编码）
-        guard let data = try? Data(contentsOf: url),
-              let text = String(data: data, encoding: .utf8)
-                   ?? String(data: data, encoding: .isoLatin1) else { return }
-        importCandidates = StationStore.parseM3U(text)
-        showingImportPreview = true
+        do {
+            let data = try Data(contentsOf: url)
+            // UTF-8 优先，latin1 兜底（部分文件是其他编码）
+            guard let text = String(data: data, encoding: .utf8)
+                             ?? String(data: data, encoding: .isoLatin1) else {
+                importError = "无法读取文件内容（编码不支持），请确认是文本格式的 m3u 播放列表。"
+                showingImportError = true
+                return
+            }
+            let parsed = StationStore.parseM3U(text)
+            guard !parsed.isEmpty else {
+                importError = "文件中没有解析到任何电台。请确认内容包含 #EXTINF 名称行或 http(s) 地址行。"
+                showingImportError = true
+                return
+            }
+            importCandidates = parsed
+            // 延迟到选择器收起动画结束后再弹预览，避免 present 冲突
+            DispatchQueue.main.async {
+                showingImportPreview = true
+            }
+        } catch {
+            importError = "读取文件失败：\(error.localizedDescription)"
+            showingImportError = true
+        }
+    }
+}
+
+// 文件选择器：允许选择任意类型文件；选中回调 URL，取消回调 nil
+struct DocumentPicker: UIViewControllerRepresentable {
+    var onPick: (URL?) -> Void
+
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.item])
+        picker.allowsMultipleSelection = false
+        picker.shouldShowFileExtensions = true
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    final class Coordinator: NSObject, UIDocumentPickerDelegate {
+        let parent: DocumentPicker
+        init(_ parent: DocumentPicker) { self.parent = parent }
+
+        func documentPicker(_ controller: UIDocumentPickerViewController,
+                            didPickDocumentsAt urls: [URL]) {
+            parent.onPick(urls.first)
+        }
+
+        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+            parent.onPick(nil)
+        }
     }
 }
 

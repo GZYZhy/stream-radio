@@ -1,8 +1,10 @@
 #EXTM3U
+#Update: 2026-08-21 13:59:01
 #EXTINF:-1,CCTV-1
 https://piccpndali.v.myalicdn.com/audio/cctv1_2.m3u8
 #EXTINF:-1,CCTV-13
 https://piccpndali.v.myalicdn.com/audio/cctv13_2.m3u8
 #EXTINF:-1,CNR 中国之声
 https://ngcdn001.cnr.cn/live/zgzs/index.m3u8
-
+#EXTINF:-1,亚洲热歌
+http://hot.asiafm.net:8000/asiafm

@@ -28,7 +28,7 @@ from datetime import datetime
 # ============================================================
 
 APP_NAME = "网络电台"
-APP_VERSION = "1.3"
+APP_VERSION = "1.4"
 
 
 # ============================================================
@@ -91,6 +91,25 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtGui import QAction, QKeySequence, QIcon, QShortcut, QColor
 from PyQt6.QtCore import QUrl, Qt, QTimer, QSettings, QThread, pyqtSignal
+
+
+# 音频 Content-Type / server_type → 展示用的编码名（质量指示器用）
+_AUDIO_CODEC_NAMES = {
+    "audio/mpeg": "MP3", "audio/mp3": "MP3", "audio/x-mpeg": "MP3",
+    "audio/aac": "AAC", "audio/aacp": "AAC",
+    "audio/opus": "Opus",
+    "audio/ogg": "Ogg", "application/ogg": "Ogg",
+    "audio/flac": "FLAC", "audio/x-flac": "FLAC",
+    "audio/ac3": "AC3", "audio/eac3": "EAC3",
+}
+
+
+def _codec_from_mime(mime):
+    """把 Content-Type / server_type（如 'audio/mpeg'、'audio/ogg; codecs=opus'）映射为展示名。"""
+    if not mime:
+        return None
+    base = mime.split(";", 1)[0].strip().lower()
+    return _AUDIO_CODEC_NAMES.get(base)
 
 
 # ============================================================
@@ -434,6 +453,7 @@ class IcyMetadataFetcher(QThread):
     """
 
     program_updated = pyqtSignal(str)   # 每次解析到新的节目/曲目文本
+    quality_updated = pyqtSignal(dict)  # 质量信息：{codec, bitrate}，来自响应头
 
     def __init__(self, url, parent=None):
         super().__init__(parent)
@@ -468,6 +488,21 @@ class IcyMetadataFetcher(QThread):
         # 兼容自签名证书的 HTTPS 电台
         ctx = ssl._create_unverified_context() if self._url.startswith("https") else None
         resp = urllib.request.urlopen(req, timeout=3, context=ctx)
+
+        # 解析质量信息：码率来自 icy-br（kbps），编码来自 Content-Type；
+        # 放在 metaint 判断之前，无 ICY 元数据也能拿到质量
+        q = {}
+        br = resp.headers.get("icy-br")
+        if br:
+            try:
+                q["bitrate"] = int(br)
+            except (TypeError, ValueError):
+                pass
+        codec = _codec_from_mime(resp.headers.get("Content-Type"))
+        if codec:
+            q["codec"] = codec
+        if q:
+            self.quality_updated.emit(q)
 
         # 服务器未启用 ICY 元数据则直接结束（该台没有内联节目信息）
         metaint = resp.headers.get("icy-metaint")
@@ -541,6 +576,7 @@ class IcecastStatusFetcher(QThread):
     """
 
     program_updated = pyqtSignal(str)   # 每次查到新的节目/曲目文本
+    quality_updated = pyqtSignal(dict)  # 质量信息：{codec, bitrate, samplerate, channels}
 
     def __init__(self, url, parent=None):
         super().__init__(parent)
@@ -581,7 +617,7 @@ class IcecastStatusFetcher(QThread):
         ctx = ssl._create_unverified_context() if status_url.startswith("https") else None
         try:
             resp = urllib.request.urlopen(req, timeout=3, context=ctx)
-            data = resp.read(65536)
+            data = resp.read(262144)  # 台多时 source 数组会很长，放大防截断
         except Exception:
             return  # 非 Icecast 服务器，静默结束
 
@@ -607,6 +643,24 @@ class IcecastStatusFetcher(QThread):
         if not chosen:
             return
 
+        # 解析质量：codec 用 server_type，码率/采样率/声道直接取或从 audio_info 兜底
+        q = {}
+        codec = _codec_from_mime(chosen.get("server_type"))
+        if codec:
+            q["codec"] = codec
+        for key, target in (("bitrate", "bitrate"), ("samplerate", "samplerate"),
+                            ("channels", "channels")):
+            val = chosen.get(key)
+            if val is None:
+                val = self._parse_audio_info(chosen.get("audio_info"), target)
+            if val is not None:
+                try:
+                    q[target] = int(val)
+                except (TypeError, ValueError):
+                    pass
+        if q:
+            self.quality_updated.emit(q)
+
         title = (chosen.get("title") or "").strip()
         if not title:
             title = (chosen.get("songtitle") or "").strip()
@@ -619,6 +673,17 @@ class IcecastStatusFetcher(QThread):
                 title = " — ".join(x for x in (artist, song) if x)
         if title:
             self.program_updated.emit(title)
+
+    @staticmethod
+    def _parse_audio_info(info, key):
+        """从 audio_info（形如 'bitrate=128;samplerate=44100;channels=2'）取某字段值。"""
+        if not info:
+            return None
+        for part in info.split(";"):
+            k, _, v = part.partition("=")
+            if k.strip() == key:
+                return v.strip()
+        return None
 
 
 # ============================================================
@@ -1182,6 +1247,13 @@ class RadioWindow(QMainWindow):
         self._status_fetcher = None       # Icecast status-json（所有台兜底）
         self._icy_has_data = False        # ICY 已拿到数据则优先于 status-json
         self._icy_program_text = ""       # 最近一次节目/曲目文本
+        self._last_notified_program = None  # 已推送过通知的节目文本（避免重复）
+
+        # 播放质量指示器
+        self._quality_sources = {}        # 各来源({icy,status,qt})提供的字段
+        self._quality = {}                # 合并后的质量字段
+        self._latency_start = None        # 开始播放的单调时钟（测延迟用）
+        self._latency_recorded = False    # 延迟是否已记录（只记一次）
 
         # 录制相关
         self.record_proc = None
@@ -1285,6 +1357,14 @@ class RadioWindow(QMainWindow):
         self.now_program_label.setObjectName("cardTitle")
         self.now_program_label.setMinimumHeight(16)
         now_layout.addWidget(self.now_program_label)
+
+        # 播放质量指示器（编码 · 码率 · 采样率 · 声道 · 延迟）
+        self.quality_label = QLabel("")
+        self.quality_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.quality_label.setStyleSheet("font-size: 12px;")
+        self.quality_label.setMinimumHeight(16)
+        self.quality_label.setToolTip("质量由电台来源和网络环境决定")
+        now_layout.addWidget(self.quality_label)
 
         # 定时停播倒计时
         self.sleep_label = QLabel("")
@@ -1953,6 +2033,9 @@ class RadioWindow(QMainWindow):
                 border-radius: 5px;
             }}
         """)
+
+        # 深浅色切换后刷新质量行的文字颜色
+        self._update_quality_label()
 
     def _check_theme_change(self):
         """定时检查系统主题是否变化"""
@@ -3275,8 +3358,16 @@ class RadioWindow(QMainWindow):
         self._stop_status_fetcher()
         self._icy_has_data = False
         self._icy_program_text = ""
+        self._last_notified_program = None
         self.now_program_label.setText("")
         self.now_program_label.setToolTip("")
+
+        # 重置质量指示器并开始测启动/缓冲延迟
+        self._quality_sources = {}
+        self._quality = {}
+        self._latency_recorded = False
+        self._latency_start = time.monotonic()
+        self._update_quality_label()
 
         self.player.stop()
         self.player.setSource(QUrl(url))
@@ -3334,6 +3425,12 @@ class RadioWindow(QMainWindow):
         self.now_label.setText("已停止")
         self.now_program_label.setText("")
         self.now_program_label.setToolTip("")
+        # 清空质量指示器（隐藏整行）
+        self._quality_sources = {}
+        self._quality = {}
+        self._latency_recorded = False
+        self._latency_start = None
+        self._update_quality_label()
         self.mini_play_btn.setText("▶")
 
         if self.record_proc:
@@ -3356,6 +3453,7 @@ class RadioWindow(QMainWindow):
         try:
             self._icy_fetcher = IcyMetadataFetcher(url)
             self._icy_fetcher.program_updated.connect(self._on_icy_program)
+            self._icy_fetcher.quality_updated.connect(self._on_icy_quality)
             self._icy_fetcher.start()
         except Exception:
             self._icy_fetcher = None
@@ -3367,6 +3465,7 @@ class RadioWindow(QMainWindow):
             return
         try:
             self._icy_fetcher.program_updated.disconnect(self._on_icy_program)
+            self._icy_fetcher.quality_updated.disconnect(self._on_icy_quality)
         except Exception:
             pass
         self._icy_fetcher.stop()
@@ -3382,6 +3481,7 @@ class RadioWindow(QMainWindow):
             display = display[:58] + "…"
         self.now_program_label.setText(display)
         self.now_program_label.setToolTip(text)
+        self._notify_program_change(text)
         if self.is_playing and self.current_index >= 0:
             self._update_system_media()
 
@@ -3392,6 +3492,7 @@ class RadioWindow(QMainWindow):
         try:
             self._status_fetcher = IcecastStatusFetcher(url)
             self._status_fetcher.program_updated.connect(self._on_status_program)
+            self._status_fetcher.quality_updated.connect(self._on_status_quality)
             self._status_fetcher.start()
         except Exception:
             self._status_fetcher = None
@@ -3403,6 +3504,7 @@ class RadioWindow(QMainWindow):
             return
         try:
             self._status_fetcher.program_updated.disconnect(self._on_status_program)
+            self._status_fetcher.quality_updated.disconnect(self._on_status_quality)
         except Exception:
             pass
         self._status_fetcher.stop()
@@ -3418,8 +3520,153 @@ class RadioWindow(QMainWindow):
             display = display[:58] + "…"
         self.now_program_label.setText(display)
         self.now_program_label.setToolTip(text)
+        self._notify_program_change(text)
         if self.is_playing and self.current_index >= 0:
             self._update_system_media()
+
+    def _notify_program_change(self, text):
+        """节目信息变化时推送系统通知（大字=艺术家-节目名，小字=台名）。
+
+        同一文本只通知一次，避免流内重复推送当前曲目刷屏。
+        """
+        if not text or text == self._last_notified_program:
+            return
+        if self.current_index < 0:
+            return
+        self._last_notified_program = text
+        name = self.radios[self.current_index][0]
+        self.media_int.notify(text, name)
+
+    # ---- 播放质量指示器 ----
+
+    def _on_icy_quality(self, q):
+        """ICY 响应头质量（最可靠：码率来自 icy-br，编码来自 Content-Type）"""
+        self._quality_sources["icy"] = q
+        self._merge_quality()
+
+    def _on_status_quality(self, q):
+        """status-json 质量（唯一能拿到采样率/声道的来源）"""
+        self._quality_sources["status"] = q
+        self._merge_quality()
+
+    def _merge_quality(self):
+        """字段级合并：icy > status > qt，每字段取首个非空来源。"""
+        merged = {}
+        for field in ("codec", "bitrate", "samplerate", "channels"):
+            for source in ("icy", "status", "qt"):
+                v = self._quality_sources.get(source, {}).get(field)
+                if v:
+                    merged[field] = v
+                    break
+        self._quality = merged
+        self._update_quality_label()
+
+    def _extract_qt_quality(self, md):
+        """Qt 元数据兜底：只提供编码 + 码率（PyQt6 无采样率/声道字段）。"""
+        from PyQt6.QtMultimedia import QMediaMetaData
+        q = {}
+        codec = self._normalize_codec(md.stringValue(QMediaMetaData.Key.AudioCodec))
+        if codec:
+            q["codec"] = codec
+        br = md.value(QMediaMetaData.Key.AudioBitRate)  # bps
+        if br is None:
+            br = md.stringValue(QMediaMetaData.Key.AudioBitRate)
+        if br:
+            try:
+                q["bitrate"] = max(1, round(int(br) / 1000))
+            except (TypeError, ValueError):
+                pass
+        self._quality_sources["qt"] = q
+        self._merge_quality()
+
+    @staticmethod
+    def _normalize_codec(codec):
+        """把 Qt 报告的编码名（如 'mp3'、'aac'）映射为展示名。"""
+        if not codec:
+            return None
+        c = str(codec).lower()
+        mapping = {"mp3": "MP3", "aac": "AAC", "opus": "Opus", "vorbis": "Vorbis",
+                   "flac": "FLAC", "alac": "ALAC", "pcm": "PCM", "ac3": "AC3", "eac3": "EAC3"}
+        return mapping.get(c, c)
+
+    def _measure_latency(self, status):
+        """首次进入可播状态时记录启动/缓冲延迟（毫秒），只记一次。"""
+        if self._latency_recorded or self._latency_start is None:
+            return
+        if status in (QMediaPlayer.MediaStatus.BufferingMedia,
+                      QMediaPlayer.MediaStatus.BufferedMedia):
+            self._latency_recorded = True
+            self._quality["latency"] = int((time.monotonic() - self._latency_start) * 1000)
+            self._update_quality_label()
+
+    def _update_quality_label(self):
+        """刷新质量行：未播放或全未知时清空隐藏。"""
+        if not hasattr(self, "quality_label"):
+            return
+        q = self._quality
+        if not self.is_playing or not any(k in q for k in
+                                          ("codec", "bitrate", "samplerate", "channels", "latency")):
+            self.quality_label.setText("")
+            return
+        muted = self._muted_color()
+        parts = []
+        for label, key in (("codec", "codec"), ("bitrate", "bitrate"),
+                           ("samplerate", "samplerate"), ("channels", "channels")):
+            if q.get(key):
+                parts.append(self._fmt_value(label, q[key]))
+        html = " · ".join(f"<span style='color:{muted};'>{p}</span>" for p in parts)
+        if q.get("latency") is not None:
+            html += (f" · <span style='color:{muted};'>延迟</span> "
+                     f"<span style='color:{self._latency_color(q['latency'])}; font-weight:600;'>"
+                     f"{q['latency']} ms</span>")
+        self.quality_label.setText(html)
+
+    def _fmt_value(self, label, val):
+        """把字段名+原始值格式化为展示片段（码率/采样率/声道特殊处理）。"""
+        if label == "codec":
+            return val
+        if label == "bitrate":
+            return f"{val} kbps"
+        if label == "samplerate":
+            return self._format_samplerate(val)
+        if label == "channels":
+            return self._channel_text(val)
+        return str(val)
+
+    @staticmethod
+    def _format_samplerate(hz):
+        """采样率 → 展示字符串（44100 → '44.1 kHz'）"""
+        try:
+            hz = int(hz)
+        except (TypeError, ValueError):
+            return str(hz)
+        if hz % 1000 == 0:
+            return f"{hz // 1000} kHz"
+        return f"{hz / 1000:g} kHz"
+
+    @staticmethod
+    def _channel_text(n):
+        """声道数 → 中文描述（1 单声道 / 2 立体声 / n 声道）"""
+        try:
+            n = int(n)
+        except (TypeError, ValueError):
+            return str(n)
+        return {1: "单声道", 2: "立体声"}.get(n, f"{n} 声道")
+
+    @staticmethod
+    def _latency_color(ms):
+        """延迟毫秒 → 颜色：绿 <150 / 黄 150-299 / 橙 300-599 / 红 ≥600"""
+        if ms < 150:
+            return "#34c759"
+        if ms < 300:
+            return "#ffcc00"
+        if ms < 600:
+            return "#ff9500"
+        return "#ff3b30"
+
+    def _muted_color(self):
+        """次要文字颜色（按深浅色模式）"""
+        return "#86868b" if self._is_dark_mode() else "#8e8e93"
 
     def _pool_indices(self):
         """当前换台范围内的索引列表（全部电台 或 星标台）"""
@@ -3541,10 +3788,14 @@ class RadioWindow(QMainWindow):
     def _on_media_status(self, status):
         """媒体状态变化（用于更新系统媒体信息）"""
         log.info("媒体状态变化: %s，当前源=%s", _enum_info(status), self.player.source().toString())
+        self._measure_latency(status)
         self._update_system_media()
 
     def _on_meta_data_changed(self):
         """流媒体元数据更新（ICY 等），提取当前播放的节目信息并显示。"""
+        # Qt 元数据兜底提取编码/码率（不影响 ICY 显示的节目信息）
+        self._extract_qt_quality(self.player.metaData())
+
         # 已通过 ICY 线程拿到节目信息的台，优先显示 ICY 结果，忽略 Qt 的空元数据
         if self._icy_program_text:
             return
