@@ -13,6 +13,7 @@
 
 ### 修复
 - **iOS m3u 文件导入无反应**：`fileImporter` 在 iOS 17 真机、NavigationSplitView 内层选中文件后回调不触发，改为原生 `UIDocumentPickerViewController`（允许任意类型文件，解析失败明确弹错）。
+- 已知问题：使用“万能签”安装本程序会导致上述导入问题出现，建议通过电脑python启动http服务器，提供m3u文件，然后使用订阅在线列表功能“曲线救国”。使用Xcode正规安装的不受影响。关于启动http服务器，请咨询ai助手。
 
 ### 改进
 - **iOS 关于页版本号**：改为从 Info.plist 动态读取，不再硬编码，避免发版遗漏。
