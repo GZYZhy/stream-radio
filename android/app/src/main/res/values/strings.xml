@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">网络电台</string>
+    <string name="play">播放</string>
+    <string name="pause">暂停</string>
+    <string name="next">下一台</string>
+    <string name="previous">上一台</string>
+    <string name="notification_channel_playback">播放控制</string>
+</resources>

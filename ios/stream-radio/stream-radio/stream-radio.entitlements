@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 网络出站：播放网络电台必需 -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<!-- 用户选择的文件：读取 m3u 文件导入 -->
+	<key>com.apple.security.files.user-selected.read-only</key>
+	<true/>
+</dict>
+</plist>
