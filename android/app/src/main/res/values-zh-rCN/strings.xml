@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">网络电台</string>
+    <string name="nav_all_stations">全部电台</string>
+    <string name="nav_favorites">星标电台</string>
+    <string name="nav_settings">设置</string>
+    <string name="nav_help">帮助</string>
+    <string name="nav_about">关于</string>
+
+    <string name="search_placeholder">搜索电台…</string>
+    <string name="empty_stations_title">暂无电台</string>
+    <string name="empty_stations_desc">点右上角 + 添加，或导入 m3u 列表</string>
+    <string name="empty_favorites_title">暂无星标电台</string>
+    <string name="empty_favorites_hint">点击电台行尾的星标图标，或长按菜单标星</string>
+
+    <string name="add_station">添加电台</string>
+    <string name="edit_station">编辑电台</string>
+    <string name="name">名称</string>
+    <string name="stream_url">播放地址</string>
+    <string name="cancel">取消</string>
+    <string name="save">保存</string>
+    <string name="add">添加</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
+    <string name="ok">好</string>
+    <string name="confirm">确定</string>
+
+    <string name="favorite">标星</string>
+    <string name="unfavorite">取消星标</string>
+    <string name="favorited">已标星</string>
+    <string name="move_up">上移</string>
+    <string name="move_down">下移</string>
+
+    <string name="import_failed_title">导入失败</string>
+    <string name="import_failed_encoding">无法读取文件内容（编码不支持），请确认是文本格式的 m3u 播放列表。</string>
+    <string name="import_failed_empty">文件中没有解析到任何电台。请确认内容包含 #EXTINF 名称行或 http(s) 地址行。</string>
+    <string name="import_failed_read">读取文件失败：%1$s</string>
+
+    <string name="import_preview_title">选择要导入的台</string>
+    <string name="import_already_exists">已存在</string>
+    <string name="import_summary">共 %1$d 个，可导入 %2$d 个，重复 %3$d 个</string>
+    <string name="import_button">导入 (%1$d)</string>
+
+    <string name="now_playing_connecting">正在连接…</string>
+    <string name="now_playing_latency">延迟 %1$d ms</string>
+    <string name="sleep_timer_title">定时停播</string>
+    <string name="sleep_timer_active">定时中</string>
+    <string name="sleep_timer_remaining">定时停播 %1$s</string>
+    <string name="sleep_timer_minutes">%1$d 分钟</string>
+    <string name="sleep_timer_custom">自定义…</string>
+    <string name="sleep_timer_cancel">取消定时</string>
+    <string name="sleep_timer_remaining_text">剩余 %1$s 后停止播放</string>
+    <string name="sleep_timer_hint">选择时长后，倒计时结束自动停止播放</string>
+    <string name="sleep_timer_custom_title">自定义时长</string>
+    <string name="sleep_timer_custom_hint">输入分钟数（例如 25）</string>
+    <string name="quality_help_title">质量说明</string>
+    <string name="quality_help_message">质量由电台来源和网络环境决定</string>
+    <string name="quality_help_got_it">知道了</string>
+
+    <string name="quality_mono">单声道</string>
+    <string name="quality_stereo">立体声</string>
+    <string name="quality_channels">%1$d 声道</string>
+
+    <string name="settings_title">设置</string>
+    <string name="settings_section_appearance">外观</string>
+    <string name="settings_appearance">外观</string>
+    <string name="settings_appearance_system">跟随系统</string>
+    <string name="settings_appearance_light">浅色</string>
+    <string name="settings_appearance_dark">深色</string>
+    <string name="settings_language">语言</string>
+    <string name="settings_language_system">跟随系统</string>
+    <string name="settings_language_zh">简体中文</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_fr">Français</string>
+    <string name="settings_language_ja">日本語</string>
+    <string name="settings_language_restart_hint">语言设置将在重启应用后生效</string>
+
+    <string name="settings_section_subscription">订阅</string>
+    <string name="settings_auto_sync">启动时自动同步</string>
+    <string name="settings_no_subscription">暂无订阅。添加 m3u 链接后，用下方按钮手动同步拉取电台（按播放链接去重）。</string>
+    <string name="settings_sync_manual">手动同步全部订阅</string>
+    <string name="settings_syncing">同步中…</string>
+    <string name="settings_add_subscription">添加订阅</string>
+    <string name="settings_sync_success">已新增 %1$d 个电台（按播放链接去重）</string>
+    <string name="settings_sync_failed">同步失败，请检查网络与订阅链接</string>
+    <string name="settings_sub_name">名称</string>
+    <string name="settings_sub_url">m3u 链接</string>
+    <string name="settings_delete_subscription">删除订阅</string>
+
+    <string name="settings_section_network">网络</string>
+    <string name="settings_check_connectivity">检查全部电台连通性</string>
+    <string name="settings_checking">检查中…</string>
+    <string name="settings_check_result">可播 %1$d 个，失败 %2$d 个</string>
+    <string name="settings_delete_all_failed">删除全部失败</string>
+    <string name="settings_failed_default">失败</string>
+    <string name="settings_remove_from_list">从列表删除</string>
+
+    <string name="settings_section_other">其他</string>
+    <string name="settings_help">帮助</string>
+    <string name="settings_about">关于</string>
+    <string name="settings_disclaimer">免责声明</string>
+    <string name="settings_check_update">检查更新</string>
+    <string name="checking_update">检查中…</string>
+    <string name="update_available_title">发现新版本 %1$s</string>
+    <string name="update_notes_empty">（暂无更新说明）</string>
+    <string name="update_go">前往下载</string>
+    <string name="update_later">稍后</string>
+    <string name="update_latest">已是最新版本</string>
+    <string name="update_failed">检查失败，请检查网络后重试</string>
+
+    <string name="about_title">关于</string>
+    <string name="about_section_info">信息</string>
+    <string name="about_version">版本</string>
+    <string name="about_author">作者</string>
+    <string name="about_license">许可证</string>
+    <string name="about_github">GitHub 仓库</string>
+    <string name="about_blog">作者博客</string>
+    <string name="about_disclaimer_link">免责声明</string>
+    <string name="about_description">极简原生网络电台播放器，支持电台播放、收藏、m3u 导入订阅、节目信息显示、通知栏控制等功能。\n\n本程序不运营、不存储、不提供任何音频内容，所有播放能力仅面向用户自行添加的音频流地址。\n电台质量与网络环境和电台来源有关，请自行添加拥有合法授权的音源。\n\n© 2026 GZYZhy</string>
+
+    <string name="help_title">帮助</string>
+    <string name="help_getting_started">快速上手</string>
+    <string name="help_play">播放电台</string>
+    <string name="help_play_desc">点击电台即可开始播放</string>
+    <string name="help_search">搜索电台</string>
+    <string name="help_search_desc">列表顶部搜索框，按名称/地址过滤</string>
+    <string name="help_program_info">节目信息</string>
+    <string name="help_program_info_desc">当电台来源包含节目单时会自动展示</string>
+    <string name="help_station_mgmt">电台管理</string>
+    <string name="help_add_station">添加电台</string>
+    <string name="help_add_station_desc">列表右上角「+」填写名称与播放地址</string>
+    <string name="help_import_local">本地导入</string>
+    <string name="help_import_desc">点击下载图标选择 m3u 文件</string>
+    <string name="help_long_press">长按电台</string>
+    <string name="help_long_press_desc">编辑 / 上移 / 下移 / 标星 / 删除</string>
+    <string name="help_swipe_left">左滑电台</string>
+    <string name="help_swipe_left_desc">编辑 / 删除</string>
+    <string name="help_favorites">星标</string>
+    <string name="help_favorite">标星</string>
+    <string name="help_favorite_desc">长按或点行尾星标，支持通知栏标星</string>
+    <string name="help_favorites_list">星标列表</string>
+    <string name="help_favorites_list_desc">侧边栏 → 星标台 可查看所有标星电台</string>
+    <string name="help_subscriptions">订阅</string>
+    <string name="help_sub_entry">入口</string>
+    <string name="help_sub_entry_desc">侧边栏 → 设置 → 订阅</string>
+    <string name="help_sub_add">添加订阅</string>
+    <string name="help_sub_add_desc">填写名称与 m3u 链接</string>
+    <string name="help_sub_manual_sync">手动同步</string>
+    <string name="help_sub_manual_sync_desc">下载解析后按播放链接去重，只新增不重复的电台</string>
+    <string name="help_sub_auto_sync">启动时同步</string>
+    <string name="help_sub_auto_sync_desc">打开后启动时会自动拉取链接进行同步</string>
+    <string name="help_sub_note">说明</string>
+    <string name="help_sub_note_desc">同步功能不会移除已存在的电台，仅新增不重复的电台</string>
+    <string name="help_network">网络</string>
+    <string name="help_connectivity_check">连通性检查</string>
+    <string name="help_connectivity_check_desc">侧边栏 → 设置 → 检查全部电台</string>
+    <string name="help_delete_station">删除电台</string>
+    <string name="help_delete_desc">可一键删除 / 左划删除失败电台</string>
+    <string name="help_network_note">说明</string>
+    <string name="help_network_note_desc">当电台数量过多时，检查可能需要较长时间</string>
+    <string name="help_appearance_other">外观与其他</string>
+    <string name="help_theme">深浅色</string>
+    <string name="help_theme_desc">设置 → 外观，跟随系统 / 浅色 / 深色</string>
+    <string name="help_background_playback">后台播放</string>
+    <string name="help_background_playback_desc">通知栏 / 控制中心可查看节目并切台</string>
+    <string name="help_quality_indicator">质量指示</string>
+    <string name="help_quality_indicator_desc">播放页会展示获取到的码率、格式、延迟、声道数信息</string>
+
+    <string name="play">播放</string>
+    <string name="pause">暂停</string>
+    <string name="next">下一台</string>
+    <string name="previous">上一台</string>
+    <string name="notification_channel_playback">播放控制</string>
+
+    <string name="error_invalid_url">无效的播放地址</string>
+    <string name="error_playback_failed">播放失败</string>
+    <string name="error_invalid_address">无效地址</string>
+
+    <string name="crash_report_title">检测到上次崩溃</string>
+    <string name="crash_report_message">程序上次运行时异常退出。是否查看崩溃日志？</string>
+    <string name="crash_report_view">查看</string>
+    <string name="crash_report_close">关闭</string>
+</resources>

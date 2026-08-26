@@ -10,8 +10,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.gzyzhy.streamradio.R
 import com.gzyzhy.streamradio.data.Station
 
 @Composable
@@ -70,24 +72,27 @@ fun StationRow(
                         onDismissRequest = { showMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("编辑") },
+                            text = { Text(stringResource(R.string.edit)) },
                             onClick = { showMenu = false; onEdit() }
                         )
                         DropdownMenuItem(
-                            text = { Text(if (station.isFavorite) "取消星标" else "标星") },
+                            text = {
+                                Text(if (station.isFavorite) stringResource(R.string.unfavorite)
+                                else stringResource(R.string.favorite))
+                            },
                             onClick = { showMenu = false; onToggleFavorite() }
                         )
                         DropdownMenuItem(
-                            text = { Text("上移") },
+                            text = { Text(stringResource(R.string.move_up)) },
                             onClick = { showMenu = false; onMoveUp() }
                         )
                         DropdownMenuItem(
-                            text = { Text("下移") },
+                            text = { Text(stringResource(R.string.move_down)) },
                             onClick = { showMenu = false; onMoveDown() }
                         )
                         Divider()
                         DropdownMenuItem(
-                            text = { Text("删除", color = MaterialTheme.colorScheme.error) },
+                            text = { Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error) },
                             onClick = { showMenu = false; onDelete() }
                         )
                     }

@@ -25,7 +25,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:configChanges="orientation|screenSize|uiMode"
+            android:configChanges="orientation|screenSize|uiMode|locale|layoutDirection"
             android:theme="@style/Theme.StreamRadio">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

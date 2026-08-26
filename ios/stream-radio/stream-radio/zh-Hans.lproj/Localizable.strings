@@ -1,0 +1,223 @@
+/* ==== 通用 ==== */
+"app_name" = "网络电台";
+"cancel" = "取消";
+"confirm" = "确定";
+"save" = "保存";
+"add" = "添加";
+"delete" = "删除";
+"edit" = "编辑";
+"ok" = "好";
+"close" = "关闭";
+"name" = "名称";
+"url" = "播放地址";
+"m3u_link" = "m3u 链接";
+"search_placeholder" = "搜索电台…";
+
+/* ==== 侧边栏 ==== */
+"sidebar_section_stations" = "电台";
+"sidebar_all_stations" = "全部电台";
+"sidebar_favorites" = "星标电台";
+"sidebar_section_more" = "更多";
+"sidebar_settings" = "设置";
+"sidebar_help" = "帮助";
+"sidebar_about" = "关于";
+
+/* ==== 电台列表 ==== */
+"nav_title_all_stations" = "全部电台";
+"nav_title_favorites" = "星标电台";
+"empty_stations_title" = "暂无电台";
+"empty_stations_desc" = "点右上角 + 添加，或导入 m3u 列表";
+"empty_favorites_title" = "暂无星标电台";
+"empty_favorites_hint_ios" = "点击电台行尾的星标图标，或长按菜单标星";
+"empty_favorites_hint_macos" = "点击电台行尾的星标图标，或右键菜单标星";
+"add_station_title" = "添加电台";
+"edit_station_title" = "编辑电台";
+"import_failed_title" = "导入失败";
+"import_failed_encoding" = "无法读取文件内容（编码不支持），请确认是文本格式的 m3u 播放列表。";
+"import_failed_empty" = "文件中没有解析到任何电台。请确认内容包含 #EXTINF 名称行或 http(s) 地址行。";
+"import_failed_read" = "读取文件失败：%@";
+
+/* ==== 导入预览 ==== */
+"import_preview_title" = "选择要导入的台";
+"import_already_exists" = "已存在";
+"import_summary" = "共 %ld 个，可导入 %ld 个，重复 %ld 个";
+"import_button" = "导入 (%ld)";
+
+/* ==== 电台行 ==== */
+"row_unfavorite" = "取消星标";
+"row_favorite" = "标星";
+"row_move_up" = "上移";
+"row_move_down" = "下移";
+"row_delete_from_list" = "从列表删除";
+"row_delete_subscription" = "删除订阅";
+
+/* ==== 正在播放 ==== */
+"now_playing_connecting" = "正在连接…";
+"now_playing_latency" = "延迟 %ld ms";
+"now_playing_favorited" = "已标星";
+"now_playing_favorite" = "标星";
+"sleep_timer_title" = "定时停播";
+"sleep_timer_active" = "定时中";
+"sleep_timer_remaining" = "定时停播 %@";
+"sleep_timer_minutes" = "%ld 分钟";
+"sleep_timer_custom" = "自定义…";
+"sleep_timer_cancel" = "取消定时";
+"sleep_timer_remaining_text" = "剩余 %@ 后停止播放";
+"sleep_timer_hint" = "选择时长后，倒计时结束自动停止播放";
+"sleep_timer_custom_title" = "自定义时长";
+"sleep_timer_custom_placeholder" = "分钟";
+"sleep_timer_custom_hint" = "输入分钟数（例如 25）";
+"quality_help_title" = "质量说明";
+"quality_help_message" = "质量由电台来源和网络环境决定";
+"quality_help_got_it" = "知道了";
+
+/* ==== 音频质量 ==== */
+"quality_mono" = "单声道";
+"quality_stereo" = "立体声";
+"quality_channels" = "%ld 声道";
+
+/* ==== 设置页 ==== */
+"nav_title_settings" = "设置";
+"settings_section_appearance" = "外观";
+"settings_appearance" = "外观";
+"settings_appearance_system" = "跟随系统";
+"settings_appearance_light" = "浅色";
+"settings_appearance_dark" = "深色";
+"settings_language" = "语言";
+"settings_language_system" = "跟随系统";
+"settings_language_zh" = "简体中文";
+"settings_language_en" = "English";
+"settings_language_fr" = "Français";
+"settings_language_ja" = "日本語";
+"settings_language_restart_hint" = "语言设置将在下次启动时生效";
+"settings_section_window" = "窗口";
+"settings_close_behavior" = "关闭主窗口时";
+"settings_close_ask" = "每次询问";
+"settings_close_hide" = "最小化到托盘";
+"settings_close_quit" = "退出程序";
+"settings_close_hint" = "选择「最小化到托盘」后，关闭窗口会隐藏到菜单栏托盘；选择「退出程序」则直接结束应用。";
+"settings_section_subscription" = "订阅";
+"settings_auto_sync" = "启动时自动同步";
+"settings_no_subscription" = "暂无订阅。添加 m3u 链接后，用下方按钮手动同步拉取电台（按播放链接去重）。";
+"settings_sync_manual" = "手动同步全部订阅";
+"settings_syncing" = "同步中…";
+"settings_add_subscription" = "添加订阅";
+"settings_sync_result_success" = "已新增 %ld 个电台（按播放链接去重）";
+"settings_sync_result_failed" = "同步失败，请检查网络与订阅链接";
+"settings_add_sub_title" = "添加订阅";
+"settings_sub_name" = "名称";
+"settings_sub_url" = "m3u 链接";
+"settings_section_network" = "网络";
+"settings_check_connectivity" = "检查全部电台连通性";
+"settings_checking" = "检查中…";
+"settings_check_result" = "可播 %ld 个，失败 %ld 个";
+"settings_delete_all_failed" = "删除全部失败";
+"settings_failed_default" = "失败";
+
+/* ==== 检查更新 ==== */
+"settings_section_other" = "其他";
+"settings_check_update" = "检查更新";
+"checking_update" = "检查中…";
+"update_available_title" = "发现新版本 %@";
+"update_notes_empty" = "（暂无更新说明）";
+"update_go" = "前往下载";
+"update_later" = "稍后";
+"update_latest" = "已是最新版本";
+"update_failed" = "检查失败，请检查网络后重试";
+
+/* ==== 关于页 ==== */
+"nav_title_about" = "关于";
+"about_section_info" = "信息";
+"about_version" = "版本";
+"about_author" = "作者";
+"about_license" = "许可证";
+"about_github" = "GitHub 仓库";
+"about_blog" = "作者博客";
+"about_disclaimer_link" = "免责声明";
+"about_section_description" = "说明";
+"about_description" = "极简原生网络电台播放器，支持电台播放、收藏、m3u 导入订阅、节目信息显示、通知栏控制等功能。\n\n本程序不运营、不存储、不提供任何音频内容，所有播放能力仅面向用户自行添加的音频流地址。\n电台质量与网络环境和电台来源有关，请自行添加拥有合法授权的音源。\n\n© 2026 GZYZhy";
+
+/* ==== 帮助页 ==== */
+"nav_title_help" = "帮助";
+"help_section_getting_started" = "快速上手";
+"help_play" = "播放电台";
+"help_play_desc" = "点击电台即可开始播放";
+"help_search" = "搜索电台";
+"help_search_desc" = "列表顶部搜索框，按名称/地址过滤";
+"help_program_info" = "节目信息";
+"help_program_info_desc" = "当电台来源包含节目单时会自动展示";
+"help_section_station_mgmt" = "电台管理";
+"help_add_station" = "添加电台";
+"help_add_station_desc" = "列表右上角「+」填写名称与播放地址";
+"help_import_local" = "本地导入";
+"help_import_ios" = "列表右上角「⇩」从「文件」选择m3u文件";
+"help_import_macos" = "列表右上角「⇩」选择 m3u 文件";
+"help_long_press_ios" = "长按电台";
+"help_right_click_macos" = "右键电台";
+"help_context_menu_desc" = "编辑 / 上移 / 下移 / 标星 / 删除";
+"help_swipe_left" = "左滑电台";
+"help_swipe_left_desc" = "编辑 / 删除";
+"help_section_favorites" = "星标";
+"help_favorite" = "标星";
+"help_favorite_ios" = "长按或点行尾星标，支持控制中心星标";
+"help_favorite_macos" = "点击行尾星标图标 / 右键菜单，支持控制中心星标";
+"help_favorites_list" = "星标列表";
+"help_favorites_list_desc" = "侧边栏 → 星标台 可查看所有标星电台";
+"help_section_subscriptions" = "订阅";
+"help_sub_entry" = "入口";
+"help_sub_entry_desc" = "侧边栏 → 设置 → 订阅";
+"help_sub_add" = "添加订阅";
+"help_sub_add_desc" = "填写名称与 m3u 链接";
+"help_sub_manual_sync" = "手动同步";
+"help_sub_manual_sync_desc" = "下载解析后按播放链接去重，只新增不重复的电台";
+"help_sub_auto_sync" = "启动时同步";
+"help_sub_auto_sync_desc" = "打开后启动时会自动拉取链接进行同步";
+"help_sub_note" = "说明";
+"help_sub_note_desc" = "同步功能不会移除已存在的电台，仅新增不重复的电台";
+"help_section_network" = "网络";
+"help_connectivity_check" = "连通性检查";
+"help_connectivity_check_desc" = "侧边栏 → 设置 → 检查全部电台";
+"help_delete_station" = "删除电台";
+"help_delete_ios" = "可一键删除 / 左划删除失败电台";
+"help_delete_macos" = "可一键删除 / 单独删除失败电台";
+"help_network_note" = "说明";
+"help_network_note_desc" = "当电台数量过多时，检查可能需要较长时间";
+"help_section_appearance_other" = "外观与其他";
+"help_theme" = "深浅色";
+"help_theme_desc" = "设置 → 外观，跟随系统 / 浅色 / 深色";
+"help_background_playback" = "后台播放";
+"help_background_playback_desc" = "通知栏 / 控制中心可查看节目并切台";
+"help_quality_indicator" = "质量指示";
+"help_quality_indicator_desc" = "播放页会展示获取到的码率、格式、延迟、声道数信息";
+"help_playback_device" = "播放设备";
+"help_playback_device_desc" = "请通过控制中心切换播放声音的设备";
+
+/* ==== macOS 菜单 ==== */
+"mac_menu_about" = "关于网络电台";
+"mac_menu_import_m3u" = "导入 m3u…";
+"mac_menu_sync_subscriptions" = "同步订阅";
+"mac_menu_play" = "播放";
+"mac_menu_play_pause" = "播放 / 暂停";
+"mac_menu_previous" = "上一台";
+"mac_menu_next" = "下一台";
+"mac_menu_toggle_favorite" = "标星 / 取消标星";
+"mac_menu_help" = "网络电台帮助";
+
+/* ==== macOS 托盘 ==== */
+"mac_tray_accessibility" = "网络电台";
+"mac_tray_not_playing" = "未在播放";
+"mac_tray_now_playing" = "正在播放：%@";
+"mac_tray_pause" = "暂停";
+"mac_tray_play" = "播放";
+"mac_tray_now_playing_nav" = "正在播放…";
+"mac_tray_settings" = "设置…";
+"mac_tray_quit" = "退出网络电台";
+"mac_close_alert_title" = "关闭网络电台";
+"mac_close_alert_message" = "要最小化到托盘，还是退出程序？";
+"mac_close_remember" = "记住我的选择，下次不再询问";
+"mac_import_prompt" = "导入";
+
+/* ==== 播放错误 ==== */
+"error_invalid_url" = "无效的播放地址";
+"error_playback_failed" = "播放失败";
+"error_invalid_address" = "无效地址";

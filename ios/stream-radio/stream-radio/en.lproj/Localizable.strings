@@ -1,0 +1,221 @@
+/* ==== General ==== */
+"app_name" = "Stream Radio";
+"cancel" = "Cancel";
+"confirm" = "OK";
+"save" = "Save";
+"add" = "Add";
+"delete" = "Delete";
+"edit" = "Edit";
+"ok" = "OK";
+"close" = "Close";
+"name" = "Name";
+"url" = "Stream URL";
+"m3u_link" = "m3u URL";
+"search_placeholder" = "Search stations…";
+
+/* ==== Sidebar ==== */
+"sidebar_section_stations" = "Stations";
+"sidebar_all_stations" = "All Stations";
+"sidebar_favorites" = "Favorites";
+"sidebar_section_more" = "More";
+"sidebar_settings" = "Settings";
+"sidebar_help" = "Help";
+"sidebar_about" = "About";
+
+/* ==== Station List ==== */
+"nav_title_all_stations" = "All Stations";
+"nav_title_favorites" = "Favorites";
+"empty_stations_title" = "No Stations";
+"empty_stations_desc" = "Tap + in the top-right to add, or import an m3u list";
+"empty_favorites_title" = "No Favorites";
+"empty_favorites_hint_ios" = "Tap the star icon at the end of a station row, or long-press to favorite";
+"empty_favorites_hint_macos" = "Click the star icon at the end of a station row, or right-click to favorite";
+"add_station_title" = "Add Station";
+"edit_station_title" = "Edit Station";
+"import_failed_title" = "Import Failed";
+"import_failed_encoding" = "Unable to read the file (unsupported encoding). Please make sure it is a text-based m3u playlist.";
+"import_failed_empty" = "No stations found in the file. Please make sure it contains #EXTINF name lines or http(s) URL lines.";
+"import_failed_read" = "Failed to read file: %@";
+
+/* ==== Import Preview ==== */
+"import_preview_title" = "Select Stations to Import";
+"import_already_exists" = "Already exists";
+"import_summary" = "Total: %ld, importable: %ld, duplicates: %ld";
+"import_button" = "Import (%ld)";
+
+/* ==== Station Row ==== */
+"row_unfavorite" = "Unfavorite";
+"row_favorite" = "Favorite";
+"row_move_up" = "Move Up";
+"row_move_down" = "Move Down";
+"row_delete_from_list" = "Remove from List";
+"row_delete_subscription" = "Delete Subscription";
+
+/* ==== Now Playing ==== */
+"now_playing_connecting" = "Connecting…";
+"now_playing_latency" = "Latency %ld ms";
+"now_playing_favorited" = "Favorited";
+"now_playing_favorite" = "Favorite";
+"sleep_timer_title" = "Sleep Timer";
+"sleep_timer_active" = "Timer Active";
+"sleep_timer_remaining" = "Sleep Timer %@";
+"sleep_timer_minutes" = "%ld minutes";
+"sleep_timer_custom" = "Custom…";
+"sleep_timer_cancel" = "Cancel Timer";
+"sleep_timer_remaining_text" = "Stops in %@";
+"sleep_timer_hint" = "Choose a duration; playback will stop when the timer ends";
+"sleep_timer_custom_title" = "Custom Duration";
+"sleep_timer_custom_placeholder" = "minutes";
+"sleep_timer_custom_hint" = "Enter minutes (e.g. 25)";
+"quality_help_title" = "Quality Info";
+"quality_help_message" = "Quality depends on the station source and network conditions";
+"quality_help_got_it" = "Got it";
+
+/* ==== Audio Quality ==== */
+"quality_mono" = "Mono";
+"quality_stereo" = "Stereo";
+"quality_channels" = "%ld channels";
+
+/* ==== Settings ==== */
+"nav_title_settings" = "Settings";
+"settings_section_appearance" = "Appearance";
+"settings_appearance" = "Theme";
+"settings_appearance_system" = "System";
+"settings_appearance_light" = "Light";
+"settings_appearance_dark" = "Dark";
+"settings_language" = "Language";
+"settings_language_system" = "System";
+"settings_language_zh" = "简体中文";
+"settings_language_en" = "English";
+"settings_language_restart_hint" = "Language change will take effect on next launch";
+"settings_section_window" = "Window";
+"settings_close_behavior" = "When closing the main window";
+"settings_close_ask" = "Ask every time";
+"settings_close_hide" = "Minimize to menu bar";
+"settings_close_quit" = "Quit";
+"settings_close_hint" = "With \"Minimize to menu bar\", closing the window hides it to the menu bar; with \"Quit\", the app exits directly.";
+"settings_section_subscription" = "Subscriptions";
+"settings_auto_sync" = "Auto-sync on launch";
+"settings_no_subscription" = "No subscriptions yet. Add an m3u URL below, then use the sync button to fetch stations (deduplicated by stream URL).";
+"settings_sync_manual" = "Sync All Subscriptions";
+"settings_syncing" = "Syncing…";
+"settings_add_subscription" = "Add Subscription";
+"settings_sync_result_success" = "Added %ld new station(s) (deduplicated by stream URL)";
+"settings_sync_result_failed" = "Sync failed. Please check your network and subscription URLs.";
+"settings_add_sub_title" = "Add Subscription";
+"settings_sub_name" = "Name";
+"settings_sub_url" = "m3u URL";
+"settings_section_network" = "Network";
+"settings_check_connectivity" = "Check All Stations";
+"settings_checking" = "Checking…";
+"settings_check_result" = "Playable: %ld, failed: %ld";
+"settings_delete_all_failed" = "Delete All Failed";
+"settings_failed_default" = "Failed";
+
+/* ==== Check for Updates ==== */
+"settings_section_other" = "Other";
+"settings_check_update" = "Check for Updates";
+"checking_update" = "Checking…";
+"update_available_title" = "Update Available: %@";
+"update_notes_empty" = "(No release notes)";
+"update_go" = "Download";
+"update_later" = "Later";
+"update_latest" = "You're up to date";
+"update_failed" = "Check failed. Please check your network and try again.";
+
+/* ==== About ==== */
+"nav_title_about" = "About";
+"about_section_info" = "Info";
+"about_version" = "Version";
+"about_author" = "Author";
+"about_license" = "License";
+"about_github" = "GitHub Repo";
+"about_blog" = "Author's Blog";
+"about_disclaimer_link" = "Disclaimer";
+"about_section_description" = "About";
+"about_description" = "A minimal native internet radio player with playback, favorites, m3u import/subscription, program info display, notification controls, and more.\n\nThis app does not operate, host, or provide any audio content. All playback is for audio stream URLs added by the user.\nStation quality depends on your network and the station source. Please add only sources you have legal authorization to use.\n\n© 2026 GZYZhy";
+
+/* ==== Help ==== */
+"nav_title_help" = "Help";
+"help_section_getting_started" = "Getting Started";
+"help_play" = "Play a station";
+"help_play_desc" = "Tap a station to start playing";
+"help_search" = "Search stations";
+"help_search_desc" = "Use the search bar at the top to filter by name or URL";
+"help_program_info" = "Program info";
+"help_program_info_desc" = "Shown automatically when the station source provides a program schedule";
+"help_section_station_mgmt" = "Station Management";
+"help_add_station" = "Add a station";
+"help_add_station_desc" = "Tap + in the top-right and enter a name and stream URL";
+"help_import_local" = "Local import";
+"help_import_ios" = "Tap the download icon at the top-right and choose an m3u file from Files";
+"help_import_macos" = "Click the download icon at the top-right and choose an m3u file";
+"help_long_press_ios" = "Long-press a station";
+"help_right_click_macos" = "Right-click a station";
+"help_context_menu_desc" = "Edit / Move Up / Move Down / Favorite / Delete";
+"help_swipe_left" = "Swipe left on a station";
+"help_swipe_left_desc" = "Edit / Delete";
+"help_section_favorites" = "Favorites";
+"help_favorite" = "Favorite a station";
+"help_favorite_ios" = "Long-press or tap the star icon at the row end; also supported in Control Center";
+"help_favorite_macos" = "Click the star icon or right-click; also supported in Control Center";
+"help_favorites_list" = "Favorites list";
+"help_favorites_list_desc" = "Sidebar → Favorites to view all starred stations";
+"help_section_subscriptions" = "Subscriptions";
+"help_sub_entry" = "Where to find";
+"help_sub_entry_desc" = "Sidebar → Settings → Subscriptions";
+"help_sub_add" = "Add a subscription";
+"help_sub_add_desc" = "Enter a name and m3u URL";
+"help_sub_manual_sync" = "Manual sync";
+"help_sub_manual_sync_desc" = "Downloads and parses the list, then adds only stations not already present (deduplicated by URL)";
+"help_sub_auto_sync" = "Auto-sync on launch";
+"help_sub_auto_sync_desc" = "When enabled, subscriptions are fetched and synced automatically at launch";
+"help_sub_note" = "Note";
+"help_sub_note_desc" = "Sync never removes existing stations; it only adds new ones";
+"help_section_network" = "Network";
+"help_connectivity_check" = "Connectivity check";
+"help_connectivity_check_desc" = "Sidebar → Settings → Check All Stations";
+"help_delete_station" = "Delete stations";
+"help_delete_ios" = "Delete all failed at once / swipe left to remove individual failed stations";
+"help_delete_macos" = "Delete all failed at once / remove individual failed stations";
+"help_network_note" = "Note";
+"help_network_note_desc" = "Checking may take a while if you have many stations";
+"help_section_appearance_other" = "Appearance & Other";
+"help_theme" = "Theme";
+"help_theme_desc" = "Settings → Appearance: System / Light / Dark";
+"help_background_playback" = "Background playback";
+"help_background_playback_desc" = "View program info and switch stations from the notification shade / Control Center";
+"help_quality_indicator" = "Quality indicator";
+"help_quality_indicator_desc" = "The Now Playing screen shows bitrate, format, latency, and channel info when available";
+"help_playback_device" = "Audio output";
+"help_playback_device_desc" = "Use Control Center to switch audio output devices";
+
+/* ==== macOS Menu ==== */
+"mac_menu_about" = "About Stream Radio";
+"mac_menu_import_m3u" = "Import m3u…";
+"mac_menu_sync_subscriptions" = "Sync Subscriptions";
+"mac_menu_play" = "Play";
+"mac_menu_play_pause" = "Play / Pause";
+"mac_menu_previous" = "Previous";
+"mac_menu_next" = "Next";
+"mac_menu_toggle_favorite" = "Toggle Favorite";
+"mac_menu_help" = "Stream Radio Help";
+
+/* ==== macOS Menu Bar ==== */
+"mac_tray_accessibility" = "Stream Radio";
+"mac_tray_not_playing" = "Not Playing";
+"mac_tray_now_playing" = "Now Playing: %@";
+"mac_tray_pause" = "Pause";
+"mac_tray_play" = "Play";
+"mac_tray_now_playing_nav" = "Now Playing…";
+"mac_tray_settings" = "Settings…";
+"mac_tray_quit" = "Quit Stream Radio";
+"mac_close_alert_title" = "Close Stream Radio";
+"mac_close_alert_message" = "Minimize to menu bar, or quit?";
+"mac_close_remember" = "Remember my choice, don't ask again";
+"mac_import_prompt" = "Import";
+
+/* ==== Playback Errors ==== */
+"error_invalid_url" = "Invalid stream URL";
+"error_playback_failed" = "Playback failed";
+"error_invalid_address" = "Invalid address";

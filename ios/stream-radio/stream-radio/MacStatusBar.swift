@@ -41,7 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = item.button {
             button.image = NSImage(systemSymbolName: "dot.radiowaves.left.and.right",
-                                   accessibilityDescription: "网络电台")
+                                   accessibilityDescription: NSLocalizedString("mac_tray_accessibility", comment: ""))
             button.target = self
             button.action = #selector(statusItemClicked)
             // 让左右键都回调 action，在 action 里区分（默认只响应左键）
@@ -121,14 +121,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             return true
         default:  // "ask" 或未知值：每次询问，但可勾选「记住选择」下次不再询问
             let alert = NSAlert()
-            alert.messageText = "关闭网络电台"
-            alert.informativeText = "要最小化到托盘，还是退出程序？"
-            alert.addButton(withTitle: "最小化到托盘")
-            alert.addButton(withTitle: "退出")
+            alert.messageText = NSLocalizedString("mac_close_alert_title", comment: "")
+            alert.informativeText = NSLocalizedString("mac_close_alert_message", comment: "")
+            alert.addButton(withTitle: NSLocalizedString("settings_close_hide", comment: ""))
+            alert.addButton(withTitle: NSLocalizedString("settings_close_quit", comment: ""))
             alert.alertStyle = .informational
             // 勾选后把本次选择写入偏好（macCloseBehavior），之后关闭不再询问；
             // 仍可在「设置 → 窗口 → 关闭主窗口时」改回「每次询问」
-            let remember = NSButton(checkboxWithTitle: "记住我的选择，下次不再询问",
+            let remember = NSButton(checkboxWithTitle: NSLocalizedString("mac_close_remember", comment: ""),
                                     target: nil, action: nil)
             remember.state = .on  // 默认勾选：记录本次选择，之后不再询问
             alert.accessoryView = remember
@@ -159,21 +159,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if let cur = p?.currentStation {
             nowPlayingText = p?.programTitle.map { "\(cur.name) · \($0)" } ?? cur.name
         } else {
-            nowPlayingText = "未在播放"
+            nowPlayingText = NSLocalizedString("mac_tray_not_playing", comment: "")
         }
-        let nowPlaying = NSMenuItem(title: "正在播放：\(nowPlayingText)",
+        let nowPlaying = NSMenuItem(title: String(format: NSLocalizedString("mac_tray_now_playing", comment: ""), nowPlayingText),
                                     action: nil, keyEquivalent: "")
         nowPlaying.isEnabled = false
         menu.addItem(nowPlaying)
         menu.addItem(.separator())
 
         // 播放 / 暂停（标题随状态切换）
-        let toggleTitle = (p?.isPlaying == true) ? "暂停" : "播放"
+        let toggleTitle = (p?.isPlaying == true)
+            ? NSLocalizedString("mac_tray_pause", comment: "")
+            : NSLocalizedString("mac_tray_play", comment: "")
         menu.addItem(item(toggleTitle, #selector(togglePlayback), key: " "))
 
         // 换台
-        menu.addItem(item("上一台", #selector(previousStation), key: ""))
-        menu.addItem(item("下一台", #selector(nextStation), key: ""))
+        menu.addItem(item(NSLocalizedString("mac_menu_previous", comment: ""), #selector(previousStation), key: ""))
+        menu.addItem(item(NSLocalizedString("mac_menu_next", comment: ""), #selector(nextStation), key: ""))
 
         // 标星 / 取消标星（无当前台禁用；收藏状态从列表实时取，避免值副本过期）
         var isFav = false
@@ -181,20 +183,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             let live = p?.stationProvider?().first { $0.url == cur.url } ?? cur
             isFav = live.isFavorite
         }
-        let fav = item(isFav ? "取消标星" : "标星", #selector(toggleFavorite), key: "")
+        let fav = item(isFav
+                       ? NSLocalizedString("row_unfavorite", comment: "")
+                       : NSLocalizedString("row_favorite", comment: ""),
+                       #selector(toggleFavorite), key: "")
         fav.isEnabled = (p?.currentStation != nil)
         menu.addItem(fav)
 
         menu.addItem(.separator())
 
         // 导航到主界面视图
-        menu.addItem(item("正在播放…", #selector(openNowPlaying), key: "P"))
-        menu.addItem(item("设置…", #selector(openSettings), key: ","))
+        menu.addItem(item(NSLocalizedString("mac_tray_now_playing_nav", comment: ""), #selector(openNowPlaying), key: "P"))
+        menu.addItem(item(NSLocalizedString("mac_tray_settings", comment: ""), #selector(openSettings), key: ","))
 
         menu.addItem(.separator())
         // 退出：terminate 是 NSApp 的方法，target 必须指向 NSApp（指向 self 会因
         // 找不到该方法而灰显无法点选）
-        let quit = NSMenuItem(title: "退出网络电台",
+        let quit = NSMenuItem(title: NSLocalizedString("mac_tray_quit", comment: ""),
                               action: #selector(NSApplication.terminate(_:)),
                               keyEquivalent: "q")
         quit.target = NSApp
@@ -277,7 +282,7 @@ func importM3UViaPanel(store: StationStore) {
     panel.allowedContentTypes = [.item]
     panel.allowsMultipleSelection = false
     panel.canChooseDirectories = false
-    panel.prompt = "导入"
+    panel.prompt = NSLocalizedString("mac_import_prompt", comment: "")
     guard panel.runModal() == .OK, let url = panel.url else { return }
 
     let accessing = url.startAccessingSecurityScopedResource()
@@ -286,13 +291,14 @@ func importM3UViaPanel(store: StationStore) {
         let data = try Data(contentsOf: url)
         guard let text = String(data: data, encoding: .utf8)
                  ?? String(data: data, encoding: .isoLatin1) else {
-            showImportAlert(title: "导入失败", message: "无法读取文件内容（编码不支持），请确认是文本格式的 m3u 播放列表。")
+            showImportAlert(title: NSLocalizedString("import_failed_title", comment: ""),
+                            message: NSLocalizedString("import_failed_encoding", comment: ""))
             return
         }
         let parsed = StationStore.parseM3U(text)
         guard !parsed.isEmpty else {
-            showImportAlert(title: "导入失败",
-                            message: "文件中没有解析到任何电台。请确认内容包含 #EXTINF 名称行或 http(s) 地址行。")
+            showImportAlert(title: NSLocalizedString("import_failed_title", comment: ""),
+                            message: NSLocalizedString("import_failed_empty", comment: ""))
             return
         }
         // 发通知让 StationListView 弹出预览 sheet（用户勾选确认后再导入）。
@@ -300,7 +306,8 @@ func importM3UViaPanel(store: StationStore) {
         // StationListView 通过 sheet(item:) 接收，避免首次 present 读到空数据。
         NotificationCenter.default.post(name: .showImportPreview, object: parsed)
     } catch {
-        showImportAlert(title: "导入失败", message: "读取文件失败：\(error.localizedDescription)")
+        showImportAlert(title: NSLocalizedString("import_failed_title", comment: ""),
+                        message: String(format: NSLocalizedString("import_failed_read", comment: ""), error.localizedDescription))
     }
 }
 
@@ -310,7 +317,7 @@ private func showImportAlert(title: String, message: String) {
     alert.messageText = title
     alert.informativeText = message
     alert.alertStyle = .warning
-    alert.addButton(withTitle: "好")
+    alert.addButton(withTitle: NSLocalizedString("ok", comment: ""))
     alert.runModal()
 }
 

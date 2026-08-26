@@ -7,7 +7,9 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.gzyzhy.streamradio.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -15,7 +17,7 @@ fun HelpScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("帮助") },
+                title = { Text(stringResource(R.string.help_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "返回")
@@ -25,37 +27,37 @@ fun HelpScreen(onBack: () -> Unit) {
         }
     ) { padding ->
         LazyColumn(modifier = Modifier.padding(padding)) {
-            item { SectionHeader("快速上手") }
-            item { HelpItem("播放电台", "点击电台即可开始播放") }
-            item { HelpItem("搜索电台", "列表顶部搜索框，按名称/地址过滤") }
-            item { HelpItem("节目信息", "当电台来源包含节目单时会自动展示") }
+            item { SectionHeader(stringResource(R.string.help_getting_started)) }
+            item { HelpItem(stringResource(R.string.help_play), stringResource(R.string.help_play_desc)) }
+            item { HelpItem(stringResource(R.string.help_search), stringResource(R.string.help_search_desc)) }
+            item { HelpItem(stringResource(R.string.help_program_info), stringResource(R.string.help_program_info_desc)) }
 
-            item { SectionHeader("电台管理") }
-            item { HelpItem("添加电台", "列表右上角「+」填写名称与播放地址") }
-            item { HelpItem("本地导入", "列表右上角「⇩」选择 m3u 文件导入") }
-            item { HelpItem("长按电台", "编辑 / 上移 / 下移 / 标星 / 删除") }
-            item { HelpItem("右侧菜单", "点行尾三个点打开操作菜单") }
+            item { SectionHeader(stringResource(R.string.help_station_mgmt)) }
+            item { HelpItem(stringResource(R.string.help_add_station), stringResource(R.string.help_add_station_desc)) }
+            item { HelpItem(stringResource(R.string.help_import_local), stringResource(R.string.help_import_desc)) }
+            item { HelpItem(stringResource(R.string.help_long_press), stringResource(R.string.help_long_press_desc)) }
+            item { HelpItem(stringResource(R.string.help_swipe_left), stringResource(R.string.help_swipe_left_desc)) }
 
-            item { SectionHeader("星标") }
-            item { HelpItem("标星", "点击行尾星标图标即可收藏") }
-            item { HelpItem("星标列表", "顶部菜单 → 星标图标查看收藏的电台") }
+            item { SectionHeader(stringResource(R.string.help_favorites)) }
+            item { HelpItem(stringResource(R.string.help_favorite), stringResource(R.string.help_favorite_desc)) }
+            item { HelpItem(stringResource(R.string.help_favorites_list), stringResource(R.string.help_favorites_list_desc)) }
 
-            item { SectionHeader("订阅") }
-            item { HelpItem("入口", "设置 → 订阅") }
-            item { HelpItem("添加订阅", "填写名称与 m3u 链接") }
-            item { HelpItem("手动同步", "下载解析后按播放链接去重，只新增不重复的电台") }
-            item { HelpItem("启动时同步", "打开后启动时自动拉取链接同步") }
-            item { HelpItem("说明", "同步功能不会移除已存在的电台，仅新增不重复的电台") }
+            item { SectionHeader(stringResource(R.string.help_subscriptions)) }
+            item { HelpItem(stringResource(R.string.help_sub_entry), stringResource(R.string.help_sub_entry_desc)) }
+            item { HelpItem(stringResource(R.string.help_sub_add), stringResource(R.string.help_sub_add_desc)) }
+            item { HelpItem(stringResource(R.string.help_sub_manual_sync), stringResource(R.string.help_sub_manual_sync_desc)) }
+            item { HelpItem(stringResource(R.string.help_sub_auto_sync), stringResource(R.string.help_sub_auto_sync_desc)) }
+            item { HelpItem(stringResource(R.string.help_sub_note), stringResource(R.string.help_sub_note_desc)) }
 
-            item { SectionHeader("网络") }
-            item { HelpItem("连通性检查", "设置 → 检查全部电台连通性") }
-            item { HelpItem("删除电台", "可一键删除 / 单独删除失败的电台") }
-            item { HelpItem("说明", "电台数量过多时检查可能需要较长时间") }
+            item { SectionHeader(stringResource(R.string.help_network)) }
+            item { HelpItem(stringResource(R.string.help_connectivity_check), stringResource(R.string.help_connectivity_check_desc)) }
+            item { HelpItem(stringResource(R.string.help_delete_station), stringResource(R.string.help_delete_desc)) }
+            item { HelpItem(stringResource(R.string.help_network_note), stringResource(R.string.help_network_note_desc)) }
 
-            item { SectionHeader("外观与其他") }
-            item { HelpItem("深浅色", "设置 → 外观，跟随系统 / 浅色 / 深色") }
-            item { HelpItem("后台播放", "通知栏可查看节目并切台") }
-            item { HelpItem("质量指示", "播放页展示码率、格式、延迟、声道数信息") }
+            item { SectionHeader(stringResource(R.string.help_appearance_other)) }
+            item { HelpItem(stringResource(R.string.help_theme), stringResource(R.string.help_theme_desc)) }
+            item { HelpItem(stringResource(R.string.help_background_playback), stringResource(R.string.help_background_playback_desc)) }
+            item { HelpItem(stringResource(R.string.help_quality_indicator), stringResource(R.string.help_quality_indicator_desc)) }
 
             item { Spacer(Modifier.height(24.dp)) }
         }

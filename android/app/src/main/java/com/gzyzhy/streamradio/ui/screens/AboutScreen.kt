@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gzyzhy.streamradio.R
 
@@ -27,7 +28,7 @@ fun AboutScreen(onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("关于") },
+                title = { Text(stringResource(R.string.about_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "返回")
@@ -50,51 +51,48 @@ fun AboutScreen(onBack: () -> Unit) {
                         modifier = Modifier.size(96.dp)
                     )
                     Spacer(Modifier.height(12.dp))
-                    Text("网络电台", style = MaterialTheme.typography.titleLarge)
+                    Text(stringResource(R.string.app_name), style = MaterialTheme.typography.titleLarge)
                 }
             }
 
-            item { SectionHeader("信息") }
+            item { SectionHeader(stringResource(R.string.about_section_info)) }
             item {
                 ListItem(
-                    headlineContent = { Text("版本") },
+                    headlineContent = { Text(stringResource(R.string.about_version)) },
                     supportingContent = { Text("$versionName (Android)") }
                 )
             }
             item {
                 ListItem(
-                    headlineContent = { Text("作者") },
+                    headlineContent = { Text(stringResource(R.string.about_author)) },
                     supportingContent = { Text("GZYZhy") }
                 )
             }
             item {
                 ListItem(
-                    headlineContent = { Text("许可证") },
+                    headlineContent = { Text(stringResource(R.string.about_license)) },
                     supportingContent = { Text("MIT") }
                 )
             }
             item {
                 ListItem(
-                    headlineContent = { Text("GitHub 仓库") },
+                    headlineContent = { Text(stringResource(R.string.about_github)) },
                     supportingContent = { Text("github.com/GZYZhy/stream-radio") }
                 )
             }
             item {
                 ListItem(
-                    headlineContent = { Text("作者博客") },
+                    headlineContent = { Text(stringResource(R.string.about_blog)) },
                     supportingContent = { Text("www.zdeweb.cn") }
                 )
             }
 
-            item { SectionHeader("说明") }
+            item { SectionHeader(stringResource(R.string.about_section_description)) }
             item {
                 ListItem(
                     headlineContent = {
                         Text(
-                            "极简原生网络电台播放器，支持电台播放、收藏、m3u 导入订阅、节目信息显示、通知栏控制等功能。\n\n" +
-                                    "本程序不运营、不存储、不提供任何音频内容，所有播放能力仅面向用户自行添加的音频流地址。\n" +
-                                    "电台质量与网络环境和电台来源有关，请自行添加拥有合法授权的音源。\n\n" +
-                                    "© 2026 GZYZhy",
+                            stringResource(R.string.about_description),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

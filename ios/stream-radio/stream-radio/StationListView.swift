@@ -28,17 +28,17 @@ struct RootView: View {
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             List(selection: $selection) {
-                Section("电台") {
-                    Label("全部电台", systemImage: "radio").tag(SidebarSection.all)
-                    Label("星标电台", systemImage: "star").tag(SidebarSection.favorites)
+                Section(NSLocalizedString("sidebar_section_stations", comment: "")) {
+                    Label(NSLocalizedString("sidebar_all_stations", comment: ""), systemImage: "radio").tag(SidebarSection.all)
+                    Label(NSLocalizedString("sidebar_favorites", comment: ""), systemImage: "star").tag(SidebarSection.favorites)
                 }
-                Section("更多") {
-                    Label("设置", systemImage: "gearshape").tag(SidebarSection.settings)
-                    Label("帮助", systemImage: "questionmark.circle").tag(SidebarSection.help)
-                    Label("关于", systemImage: "info.circle").tag(SidebarSection.about)
+                Section(NSLocalizedString("sidebar_section_more", comment: "")) {
+                    Label(NSLocalizedString("sidebar_settings", comment: ""), systemImage: "gearshape").tag(SidebarSection.settings)
+                    Label(NSLocalizedString("sidebar_help", comment: ""), systemImage: "questionmark.circle").tag(SidebarSection.help)
+                    Label(NSLocalizedString("sidebar_about", comment: ""), systemImage: "info.circle").tag(SidebarSection.about)
                 }
             }
-            .navigationTitle("网络电台")
+            .navigationTitle(NSLocalizedString("app_name", comment: ""))
         } detail: {
             switch selection ?? .all {
             case .all: StationListView(showingPlayer: $showingPlayer)
@@ -140,8 +140,8 @@ struct StationListView: View {
             if filtered.isEmpty {
                 EmptyStateView(
                     systemImage: "radio",
-                    title: "暂无电台",
-                    description: "点右上角 + 添加，或导入 m3u 列表"
+                    title: NSLocalizedString("empty_stations_title", comment: ""),
+                    description: NSLocalizedString("empty_stations_desc", comment: "")
                 )
             } else {
                 List {
@@ -159,8 +159,8 @@ struct StationListView: View {
                 #endif
             }
         }
-        .searchable(text: $searchText, prompt: "搜索电台…")
-        .navigationTitle("全部电台")
+        .searchable(text: $searchText, prompt: Text(NSLocalizedString("search_placeholder", comment: "")))
+        .navigationTitle(NSLocalizedString("nav_title_all_stations", comment: ""))
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 #if os(macOS)
@@ -175,11 +175,11 @@ struct StationListView: View {
                 Button { showingAdd = true } label: { Image(systemName: "plus") }
             }
         }
-        .alert("添加电台", isPresented: $showingAdd) {
-            TextField("名称", text: $newName)
-            TextField("播放地址", text: $newURL)
-            Button("取消", role: .cancel) { resetAdd() }
-            Button("添加") {
+        .alert(NSLocalizedString("add_station_title", comment: ""), isPresented: $showingAdd) {
+            TextField(NSLocalizedString("name", comment: ""), text: $newName)
+            TextField(NSLocalizedString("url", comment: ""), text: $newURL)
+            Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { resetAdd() }
+            Button(NSLocalizedString("add", comment: "")) {
                 let name = newName.trimmingCharacters(in: .whitespaces)
                 let url = newURL.trimmingCharacters(in: .whitespaces)
                 if !name.isEmpty && !url.isEmpty {
@@ -189,11 +189,11 @@ struct StationListView: View {
             }
             .disabled(newName.trimmingCharacters(in: .whitespaces).isEmpty)
         }
-        .alert("编辑电台", isPresented: $showEdit, presenting: editingStation) { station in
-            TextField("名称", text: $editName)
-            TextField("播放地址", text: $editURL)
-            Button("取消", role: .cancel) { }
-            Button("保存") { store.update(station, name: editName, url: editURL) }
+        .alert(NSLocalizedString("edit_station_title", comment: ""), isPresented: $showEdit, presenting: editingStation) { station in
+            TextField(NSLocalizedString("name", comment: ""), text: $editName)
+            TextField(NSLocalizedString("url", comment: ""), text: $editURL)
+            Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
+            Button(NSLocalizedString("save", comment: "")) { store.update(station, name: editName, url: editURL) }
                 .disabled(editName.trimmingCharacters(in: .whitespaces).isEmpty)
         }
         // sheet(item:)：item 非 nil 时弹出，闭包直接拿到真实数据，
@@ -222,8 +222,8 @@ struct StationListView: View {
             .ignoresSafeArea()
         }
         #endif
-        .alert("导入失败", isPresented: $showingImportError) {
-            Button("好", role: .cancel) { }
+        .alert(NSLocalizedString("import_failed_title", comment: ""), isPresented: $showingImportError) {
+            Button(NSLocalizedString("ok", comment: ""), role: .cancel) { }
         } message: {
             Text(importError ?? "")
         }
@@ -269,13 +269,13 @@ struct StationListView: View {
             // UTF-8 优先，latin1 兜底（部分文件是其他编码）
             guard let text = String(data: data, encoding: .utf8)
                              ?? String(data: data, encoding: .isoLatin1) else {
-                importError = "无法读取文件内容（编码不支持），请确认是文本格式的 m3u 播放列表。"
+                importError = NSLocalizedString("import_failed_encoding", comment: "")
                 showingImportError = true
                 return
             }
             let parsed = StationStore.parseM3U(text)
             guard !parsed.isEmpty else {
-                importError = "文件中没有解析到任何电台。请确认内容包含 #EXTINF 名称行或 http(s) 地址行。"
+                importError = NSLocalizedString("import_failed_empty", comment: "")
                 showingImportError = true
                 return
             }
@@ -285,7 +285,7 @@ struct StationListView: View {
                 importPreviewData = ImportPreviewPayload(candidates: parsed)
             }
         } catch {
-            importError = "读取文件失败：\(error.localizedDescription)"
+            importError = String(format: NSLocalizedString("import_failed_read", comment: ""), error.localizedDescription)
             showingImportError = true
         }
     }
@@ -329,7 +329,7 @@ struct ImportPreviewView: View {
                 importSummary
                     .padding(8)
             }
-            .navigationTitle("选择要导入的台")
+            .navigationTitle(NSLocalizedString("import_preview_title", comment: ""))
             .toolbar { importToolbar }
             // macOS 没有 sheet detent 机制：不设最小尺寸的话 sheet 会按内容收缩成一行，
             // 列表无法滚动、行内控件也点不到
@@ -338,7 +338,7 @@ struct ImportPreviewView: View {
             List(candidates) { station in
                 stationRow(station)
             }
-            .navigationTitle("选择要导入的台")
+            .navigationTitle(NSLocalizedString("import_preview_title", comment: ""))
             .toolbar { importToolbar }
             .safeAreaInset(edge: .bottom) { importSummary }
             .presentationDetents([.medium, .large])
@@ -365,7 +365,7 @@ struct ImportPreviewView: View {
                     .lineLimit(1)
             }
             if existingURLs.contains(station.url) {
-                Text("已存在")
+                Text(NSLocalizedString("import_already_exists", comment: ""))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -374,7 +374,8 @@ struct ImportPreviewView: View {
 
     /// 底部汇总：共 / 可导入 / 重复
     private var importSummary: some View {
-        Text("共 \(candidates.count) 个，可导入 \(importableCount) 个，重复 \(duplicateCount) 个")
+        Text(String(format: NSLocalizedString("import_summary", comment: ""),
+                    candidates.count, importableCount, duplicateCount))
             .font(.footnote)
             .foregroundStyle(.secondary)
     }
@@ -383,10 +384,10 @@ struct ImportPreviewView: View {
     @ToolbarContentBuilder
     private var importToolbar: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
-            Button("取消") { dismiss() }
+            Button(NSLocalizedString("cancel", comment: "")) { dismiss() }
         }
         ToolbarItem(placement: .confirmationAction) {
-            Button("导入 (\(checkedCount))") {
+            Button(String(format: NSLocalizedString("import_button", comment: ""), checkedCount)) {
                 onImport(candidates.filter { selected.contains($0.id) })
                 dismiss()
             }
@@ -409,9 +410,9 @@ struct FavoriteListView: View {
     private var favorites: [Station] { store.stations.filter(\.isFavorite) }
 
     #if os(iOS)
-    private let favoriteHint = "点击电台行尾的星标图标，或长按菜单标星"
+    private let favoriteHint = NSLocalizedString("empty_favorites_hint_ios", comment: "")
     #else
-    private let favoriteHint = "点击电台行尾的星标图标，或右键菜单标星"
+    private let favoriteHint = NSLocalizedString("empty_favorites_hint_macos", comment: "")
     #endif
 
     var body: some View {
@@ -419,7 +420,7 @@ struct FavoriteListView: View {
             if favorites.isEmpty {
                 EmptyStateView(
                     systemImage: "star",
-                    title: "暂无星标电台",
+                    title: NSLocalizedString("empty_favorites_title", comment: ""),
                     description: favoriteHint
                 )
             } else {
@@ -444,12 +445,12 @@ struct FavoriteListView: View {
                 #endif
             }
         }
-        .navigationTitle("星标电台")
-        .alert("编辑电台", isPresented: $showEdit, presenting: editingStation) { station in
-            TextField("名称", text: $editName)
-            TextField("播放地址", text: $editURL)
-            Button("取消", role: .cancel) { }
-            Button("保存") { store.update(station, name: editName, url: editURL) }
+        .navigationTitle(NSLocalizedString("nav_title_favorites", comment: ""))
+        .alert(NSLocalizedString("edit_station_title", comment: ""), isPresented: $showEdit, presenting: editingStation) { station in
+            TextField(NSLocalizedString("name", comment: ""), text: $editName)
+            TextField(NSLocalizedString("url", comment: ""), text: $editURL)
+            Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
+            Button(NSLocalizedString("save", comment: "")) { store.update(station, name: editName, url: editURL) }
                 .disabled(editName.trimmingCharacters(in: .whitespaces).isEmpty)
         }
         // 右下角迷你悬浮球
@@ -523,16 +524,18 @@ struct StationRow: View {
         .contentShape(Rectangle())
         .onTapGesture(perform: onPlay)
         .contextMenu {
-            Button("编辑") { onEdit() }
-            Button(station.isFavorite ? "取消星标" : "标星") { store.toggleFavorite(station) }
-            Button("上移") { store.moveUp(station) }
-            Button("下移") { store.moveDown(station) }
+            Button(NSLocalizedString("edit", comment: "")) { onEdit() }
+            Button(station.isFavorite
+                   ? NSLocalizedString("row_unfavorite", comment: "")
+                   : NSLocalizedString("row_favorite", comment: "")) { store.toggleFavorite(station) }
+            Button(NSLocalizedString("row_move_up", comment: "")) { store.moveUp(station) }
+            Button(NSLocalizedString("row_move_down", comment: "")) { store.moveDown(station) }
             Divider()
-            Button("删除", role: .destructive) { store.remove([station]) }
+            Button(NSLocalizedString("delete", comment: ""), role: .destructive) { store.remove([station]) }
         }
         .swipeActions(edge: .trailing) {
-            Button("删除", role: .destructive) { store.remove([station]) }
-            Button("编辑") { onEdit() }
+            Button(NSLocalizedString("delete", comment: ""), role: .destructive) { store.remove([station]) }
+            Button(NSLocalizedString("edit", comment: "")) { onEdit() }
                 .tint(.blue)
         }
     }

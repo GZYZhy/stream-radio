@@ -10,8 +10,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gzyzhy.streamradio.PlaybackState
+import com.gzyzhy.streamradio.R
 import com.gzyzhy.streamradio.data.Station
 import com.gzyzhy.streamradio.data.StationRepository
 import com.gzyzhy.streamradio.ui.components.MiniPlayerBubble
@@ -34,7 +36,7 @@ fun FavoritesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("星标电台") },
+                title = { Text(stringResource(R.string.nav_favorites)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "返回")
@@ -53,8 +55,9 @@ fun FavoritesScreen(
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(Modifier.height(16.dp))
-                        Text("暂无星标电台", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("在电台列表中点击星标即可收藏",
+                        Text(stringResource(R.string.empty_favorites_title),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.empty_favorites_hint),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
@@ -97,17 +100,17 @@ fun FavoritesScreen(
         var url by remember { mutableStateOf(editingStation!!.url) }
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
-            title = { Text("编辑电台") },
+            title = { Text(stringResource(R.string.edit_station)) },
             text = {
                 Column {
                 OutlinedTextField(
                     value = name, onValueChange = { name = it },
-                    label = { Text("名称") }, singleLine = true
+                    label = { Text(stringResource(R.string.name)) }, singleLine = true
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = url, onValueChange = { url = it },
-                    label = { Text("播放地址") }, singleLine = true
+                    label = { Text(stringResource(R.string.stream_url)) }, singleLine = true
                 )
             }},
             confirmButton = {
@@ -119,10 +122,10 @@ fun FavoritesScreen(
                         }
                     },
                     enabled = name.trim().isNotEmpty()
-                ) { Text("保存") }
+                ) { Text(stringResource(R.string.save)) }
             },
             dismissButton = {
-                TextButton(onClick = { showEditDialog = false }) { Text("取消") }
+                TextButton(onClick = { showEditDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }

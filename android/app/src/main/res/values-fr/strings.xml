@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Radio en ligne</string>
+    <string name="nav_all_stations">Toutes les stations</string>
+    <string name="nav_favorites">Favoris</string>
+    <string name="nav_settings">Réglages</string>
+    <string name="nav_help">Aide</string>
+    <string name="nav_about">À propos</string>
+
+    <string name="search_placeholder">Rechercher une station…</string>
+    <string name="empty_stations_title">Aucune station</string>
+    <string name="empty_stations_desc">Appuyez sur + en haut à droite pour ajouter une station, ou importez une liste m3u</string>
+    <string name="empty_favorites_title">Aucun favori</string>
+    <string name="empty_favorites_hint">Appuyez sur l\'étoile à la fin d\'une ligne, ou maintenez appuyé pour ajouter aux favoris</string>
+
+    <string name="add_station">Ajouter une station</string>
+    <string name="edit_station">Modifier la station</string>
+    <string name="name">Nom</string>
+    <string name="stream_url">URL du flux</string>
+    <string name="cancel">Annuler</string>
+    <string name="save">Enregistrer</string>
+    <string name="add">Ajouter</string>
+    <string name="delete">Supprimer</string>
+    <string name="edit">Modifier</string>
+    <string name="ok">OK</string>
+    <string name="confirm">OK</string>
+
+    <string name="favorite">Favoris</string>
+    <string name="unfavorite">Retirer des favoris</string>
+    <string name="favorited">Dans les favoris</string>
+    <string name="move_up">Monter</string>
+    <string name="move_down">Descendre</string>
+
+    <string name="import_failed_title">Échec de l\'importation</string>
+    <string name="import_failed_encoding">Impossible de lire le fichier (encodage non pris en charge). Vérifiez qu\'il s\'agit bien d\'une playlist m3u au format texte.</string>
+    <string name="import_failed_empty">Aucune station trouvée dans le fichier. Vérifiez qu\'il contient des lignes #EXTINF avec un nom ou des adresses http(s).</string>
+    <string name="import_failed_read">Échec de la lecture du fichier : %1$s</string>
+
+    <string name="import_preview_title">Sélectionner les stations à importer</string>
+    <string name="import_already_exists">Existe déjà</string>
+    <string name="import_summary">Total : %1$d, importables : %2$d, en double : %3$d</string>
+    <string name="import_button">Importer (%1$d)</string>
+
+    <string name="now_playing_connecting">Connexion…</string>
+    <string name="now_playing_latency">Latence %1$d ms</string>
+    <string name="sleep_timer_title">Veille programmable</string>
+    <string name="sleep_timer_active">Minuteur en cours</string>
+    <string name="sleep_timer_remaining">Veille %1$s</string>
+    <string name="sleep_timer_minutes">%1$d minutes</string>
+    <string name="sleep_timer_custom">Personnalisé…</string>
+    <string name="sleep_timer_cancel">Annuler le minuteur</string>
+    <string name="sleep_timer_remaining_text">S\'arrête dans %1$s</string>
+    <string name="sleep_timer_hint">Choisissez une durée ; la lecture s\'arrêtera à la fin du minuteur</string>
+    <string name="sleep_timer_custom_title">Durée personnalisée</string>
+    <string name="sleep_timer_custom_hint">Saisir en minutes (ex. 25)</string>
+    <string name="minutes">minutes</string>
+    <string name="quality_help_title">Informations sur la qualité</string>
+    <string name="quality_help_message">La qualité dépend de la source de la station et des conditions réseau</string>
+    <string name="quality_help_got_it">Compris</string>
+
+    <string name="quality_mono">Mono</string>
+    <string name="quality_stereo">Stéréo</string>
+    <string name="quality_channels">%1$d canaux</string>
+
+    <string name="settings_title">Réglages</string>
+    <string name="settings_section_appearance">Apparence</string>
+    <string name="settings_appearance">Thème</string>
+    <string name="settings_appearance_system">Système</string>
+    <string name="settings_appearance_light">Clair</string>
+    <string name="settings_appearance_dark">Sombre</string>
+    <string name="settings_language">Langue</string>
+    <string name="settings_language_system">Système</string>
+    <string name="settings_language_zh">简体中文</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_fr">Français</string>
+    <string name="settings_language_ja">日本語</string>
+    <string name="settings_language_restart_hint">Le changement de langue prendra effet après le redémarrage de l\'application</string>
+
+    <string name="settings_section_subscription">Abonnements</string>
+    <string name="settings_auto_sync">Synchroniser au démarrage</string>
+    <string name="settings_no_subscription">Aucun abonnement pour le moment. Ajoutez une URL m3u ci-dessous, puis utilisez le bouton de synchronisation pour récupérer les stations (déduplication par URL de flux).</string>
+    <string name="settings_sync_manual">Synchroniser tous les abonnements</string>
+    <string name="settings_syncing">Synchronisation…</string>
+    <string name="settings_add_subscription">Ajouter un abonnement</string>
+    <string name="settings_sync_success">%1$d station(s) ajoutée(s) (déduplication par URL de flux)</string>
+    <string name="settings_sync_failed">Échec de la synchronisation. Vérifiez votre réseau et les URLs d\'abonnement.</string>
+    <string name="settings_sub_name">Nom</string>
+    <string name="settings_sub_url">URL m3u</string>
+    <string name="settings_delete_subscription">Supprimer l\'abonnement</string>
+
+    <string name="settings_section_network">Réseau</string>
+    <string name="settings_check_connectivity">Vérifier toutes les stations</string>
+    <string name="settings_checking">Vérification…</string>
+    <string name="settings_check_result">Lisibles : %1$d, échecs : %2$d</string>
+    <string name="settings_delete_all_failed">Supprimer les échecs</string>
+    <string name="settings_failed_default">Échec</string>
+    <string name="settings_remove_from_list">Supprimer de la liste</string>
+
+    <string name="settings_section_other">Autres</string>
+    <string name="settings_help">Aide</string>
+    <string name="settings_about">À propos</string>
+    <string name="settings_disclaimer">Avertissement</string>
+    <string name="settings_check_update">Rechercher des mises à jour</string>
+    <string name="checking_update">Recherche…</string>
+    <string name="update_available_title">Mise à jour disponible : %1$s</string>
+    <string name="update_notes_empty">(Pas de notes de version)</string>
+    <string name="update_go">Télécharger</string>
+    <string name="update_later">Plus tard</string>
+    <string name="update_latest">Vous êtes à jour</string>
+    <string name="update_failed">Échec de la vérification. Vérifiez votre connexion et réessayez.</string>
+
+    <string name="about_title">À propos</string>
+    <string name="about_section_info">Informations</string>
+    <string name="about_section_description">Description</string>
+    <string name="about_version">Version</string>
+    <string name="about_author">Auteur</string>
+    <string name="about_license">Licence</string>
+    <string name="about_github">Dépôt GitHub</string>
+    <string name="about_blog">Blog de l\'auteur</string>
+    <string name="about_disclaimer_link">Avertissement</string>
+    <string name="about_description">Un lecteur de radio internet natif minimal, avec lecture, favoris, importation/abonnement m3u, affichage des informations de programme, contrôles par notification, etc.\n\nCette application n\'exploite, n\'héberge ni ne fournit de contenu audio. Toute lecture s\'effectue à partir d\'URL de flux ajoutées par l\'utilisateur.\nLa qualité des stations dépend de votre réseau et de la source. Veuillez n\'ajouter que des sources pour lesquelles vous disposez d\'une autorisation légale.\n\n© 2026 GZYZhy</string>
+
+    <string name="help_title">Aide</string>
+    <string name="help_getting_started">Premiers pas</string>
+    <string name="help_play">Lire une station</string>
+    <string name="help_play_desc">Appuyez sur une station pour démarrer la lecture</string>
+    <string name="help_search">Rechercher des stations</string>
+    <string name="help_search_desc">Utilisez la barre de recherche en haut pour filtrer par nom ou URL</string>
+    <string name="help_program_info">Informations sur le programme</string>
+    <string name="help_program_info_desc">Affichées automatiquement lorsque la source de la station fournit un programme</string>
+    <string name="help_station_mgmt">Gestion des stations</string>
+    <string name="help_add_station">Ajouter une station</string>
+    <string name="help_add_station_desc">Appuyez sur + en haut à droite et saisissez un nom et une URL de flux</string>
+    <string name="help_import_local">Importation locale</string>
+    <string name="help_import_desc">Appuyez sur l\'icône de téléchargement et choisissez un fichier m3u</string>
+    <string name="help_long_press">Maintenir appuyé sur une station</string>
+    <string name="help_long_press_desc">Modifier / Monter / Descendre / Favoris / Supprimer</string>
+    <string name="help_swipe_left">Balayer vers la gauche sur une station</string>
+    <string name="help_swipe_left_desc">Modifier / Supprimer</string>
+    <string name="help_favorites">Favoris</string>
+    <string name="help_favorite">Mettre une station en favori</string>
+    <string name="help_favorite_desc">Maintenir appuyé ou appuyer sur l\'étoile en fin de ligne ; également disponible depuis les notifications</string>
+    <string name="help_favorites_list">Liste des favoris</string>
+    <string name="help_favorites_list_desc">Barre latérale → Favoris pour voir toutes les stations marquées d\'une étoile</string>
+    <string name="help_subscriptions">Abonnements</string>
+    <string name="help_sub_entry">Où le trouver</string>
+    <string name="help_sub_entry_desc">Barre latérale → Réglages → Abonnements</string>
+    <string name="help_sub_add">Ajouter un abonnement</string>
+    <string name="help_sub_add_desc">Saisir un nom et une URL m3u</string>
+    <string name="help_sub_manual_sync">Synchronisation manuelle</string>
+    <string name="help_sub_manual_sync_desc">Télécharge et analyse la liste, puis n\'ajoute que les stations absentes (déduplication par URL)</string>
+    <string name="help_sub_auto_sync">Synchronisation au démarrage</string>
+    <string name="help_sub_auto_sync_desc">Lorsqu\'elle est activée, les abonnements sont récupérés et synchronisés automatiquement au démarrage</string>
+    <string name="help_sub_note">Remarque</string>
+    <string name="help_sub_note_desc">La synchronisation ne supprime jamais les stations existantes ; elle n\'en ajoute que de nouvelles</string>
+    <string name="help_network">Réseau</string>
+    <string name="help_connectivity_check">Vérification de connectivité</string>
+    <string name="help_connectivity_check_desc">Barre latérale → Réglages → Vérifier toutes les stations</string>
+    <string name="help_delete_station">Supprimer des stations</string>
+    <string name="help_delete_desc">Tout supprimer d\'un coup / balayer vers la gauche pour supprimer individuellement les stations en échec</string>
+    <string name="help_network_note">Remarque</string>
+    <string name="help_network_note_desc">La vérification peut prendre du temps si vous avez beaucoup de stations</string>
+    <string name="help_appearance_other">Apparence et divers</string>
+    <string name="help_theme">Thème</string>
+    <string name="help_theme_desc">Réglages → Apparence : Système / Clair / Sombre</string>
+    <string name="help_background_playback">Lecture en arrière-plan</string>
+    <string name="help_background_playback_desc">Consultez les informations du programme et changez de station depuis la zone de notifications</string>
+    <string name="help_quality_indicator">Indicateur de qualité</string>
+    <string name="help_quality_indicator_desc">L\'écran de lecture affiche le débit, le format, la latence et le nombre de canaux lorsque disponibles</string>
+
+    <string name="play">Lecture</string>
+    <string name="pause">Pause</string>
+    <string name="next">Suivant</string>
+    <string name="previous">Précédent</string>
+    <string name="notification_channel_playback">Contrôles de lecture</string>
+    <string name="notification_channel_playback_desc">Contrôles de lecture radio</string>
+
+    <string name="error_invalid_url">URL de flux invalide</string>
+    <string name="error_playback_failed">Échec de la lecture</string>
+    <string name="error_invalid_address">Adresse invalide</string>
+
+    <string name="crash_report_title">Plantage au dernier lancement</string>
+    <string name="crash_report_message">L\'application s\'est fermée de manière anormale la dernière fois. Afficher le journal de plantage ?</string>
+    <string name="crash_report_view">Afficher</string>
+    <string name="crash_report_close">Fermer</string>
+</resources>

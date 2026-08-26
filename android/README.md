@@ -1,5 +1,7 @@
 # 📻 网络电台 (Android 版)
 
+[English](README.en.md)
+
 Android 原生版网络电台播放器，使用 **Kotlin + Jetpack Compose + Media3 (ExoPlayer)** 实现，与 iOS 版功能对齐。
 
 > 最低支持 Android 8.0（API 26）

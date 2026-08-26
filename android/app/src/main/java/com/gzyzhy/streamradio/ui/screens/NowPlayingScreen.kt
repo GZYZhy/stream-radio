@@ -10,10 +10,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gzyzhy.streamradio.PlaybackState
+import com.gzyzhy.streamradio.R
 import com.gzyzhy.streamradio.data.Station
 import com.gzyzhy.streamradio.data.StationRepository
 import com.gzyzhy.streamradio.service.RadioPlaybackService
@@ -26,10 +29,15 @@ import java.util.*
 @Composable
 fun NowPlayingSheet(
     repo: StationRepository,
+    stations: List<Station>,
     playbackState: PlaybackState,
     onDismiss: () -> Unit
 ) {
-    val station = playbackState.currentStation ?: return
+    // 优先从 stations（随 repo 实时刷新）里取最新的 station，
+    // 确保标星等状态变化时 UI 能同步更新（playbackState 里的是服务副本，不会自动刷新）
+    val rawStation = playbackState.currentStation ?: return
+    val station = stations.firstOrNull { it.url == rawStation.url } ?: rawStation
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     // 当前时间（每秒刷新）
@@ -84,7 +92,7 @@ fun NowPlayingSheet(
 
             // 节目信息
             Text(
-                playbackState.programTitle ?: "正在连接…",
+                playbackState.programTitle ?: stringResource(R.string.now_playing_connecting),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -104,17 +112,17 @@ fun NowPlayingSheet(
 
                 // 质量信息
                 val quality = playbackState.audioQuality
-                if (quality != null && quality.summary.isNotEmpty()) {
+                if (quality != null && !quality.isEmpty) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            quality.summary,
+                            quality.summary(context),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         playbackState.latencyMs?.let { latency ->
                             Spacer(Modifier.width(6.dp))
                             Text(
-                                "延迟 $latency ms",
+                                stringResource(R.string.now_playing_latency, latency),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = latencyColor(latency)
                             )
@@ -142,7 +150,7 @@ fun NowPlayingSheet(
                         )
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            "定时停播 ${formatRemaining(remaining)}",
+                            stringResource(R.string.sleep_timer_remaining, formatRemaining(remaining)),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -211,7 +219,8 @@ fun NowPlayingSheet(
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
-                        if (station.isFavorite) "已标星" else "标星",
+                        if (station.isFavorite) stringResource(R.string.favorited)
+                        else stringResource(R.string.favorite),
                         color = if (station.isFavorite) MaterialTheme.colorScheme.tertiary
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -227,7 +236,8 @@ fun NowPlayingSheet(
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
-                        if (active) "定时中" else "定时停播",
+                        if (active) stringResource(R.string.sleep_timer_active)
+                        else stringResource(R.string.sleep_timer_title),
                         color = if (active) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -242,15 +252,16 @@ fun NowPlayingSheet(
     if (showSleepMenu) {
         AlertDialog(
             onDismissRequest = { showSleepMenu = false },
-            title = { Text("定时停播") },
+            title = { Text(stringResource(R.string.sleep_timer_title)) },
             text = {
                 Column {
                     if (playbackState.sleepTimerRemaining != null) {
-                        Text("剩余 ${formatRemaining(playbackState.sleepTimerRemaining!!)} 后停止播放",
+                        Text(stringResource(R.string.sleep_timer_remaining_text,
+                            formatRemaining(playbackState.sleepTimerRemaining!!)),
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(8.dp))
                     } else {
-                        Text("选择时长后，倒计时结束自动停止播放",
+                        Text(stringResource(R.string.sleep_timer_hint),
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(8.dp))
                     }
@@ -262,7 +273,7 @@ fun NowPlayingSheet(
                                 showSleepMenu = false
                             },
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text("$min 分钟") }
+                        ) { Text(stringResource(R.string.sleep_timer_minutes, min)) }
                     }
                     TextButton(
                         onClick = {
@@ -270,7 +281,7 @@ fun NowPlayingSheet(
                             showCustomSleep = true
                         },
                         modifier = Modifier.fillMaxWidth()
-                    ) { Text("自定义…") }
+                    ) { Text(stringResource(R.string.sleep_timer_custom)) }
                     if (playbackState.sleepTimerRemaining != null) {
                         TextButton(
                             onClick = {
@@ -281,12 +292,12 @@ fun NowPlayingSheet(
                             colors = ButtonDefaults.textButtonColors(
                                 contentColor = MaterialTheme.colorScheme.error
                             )
-                        ) { Text("取消定时") }
+                        ) { Text(stringResource(R.string.sleep_timer_cancel)) }
                     }
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showSleepMenu = false }) { Text("关闭") }
+                TextButton(onClick = { showSleepMenu = false }) { Text(stringResource(R.string.ok)) }
             }
         )
     }
@@ -296,15 +307,15 @@ fun NowPlayingSheet(
         var input by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showCustomSleep = false },
-            title = { Text("自定义时长") },
+            title = { Text(stringResource(R.string.sleep_timer_custom_title)) },
             text = {
                 Column {
-                    Text("输入分钟数（例如 25）")
+                    Text(stringResource(R.string.sleep_timer_custom_hint))
                     Spacer(Modifier.height(8.dp))
                     TextField(
                         value = input,
                         onValueChange = { input = it.filter { c -> c.isDigit() } },
-                        label = { Text("分钟") },
+                        label = { Text(stringResource(R.string.minutes)) },
                         singleLine = true
                     )
                 }
@@ -319,10 +330,10 @@ fun NowPlayingSheet(
                         }
                         showCustomSleep = false
                     }
-                ) { Text("确定") }
+                ) { Text(stringResource(R.string.confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = { showCustomSleep = false }) { Text("取消") }
+                TextButton(onClick = { showCustomSleep = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -331,10 +342,12 @@ fun NowPlayingSheet(
     if (showQualityHelp) {
         AlertDialog(
             onDismissRequest = { showQualityHelp = false },
-            title = { Text("质量说明") },
-            text = { Text("质量由电台来源和网络环境决定") },
+            title = { Text(stringResource(R.string.quality_help_title)) },
+            text = { Text(stringResource(R.string.quality_help_message)) },
             confirmButton = {
-                TextButton(onClick = { showQualityHelp = false }) { Text("知道了") }
+                TextButton(onClick = { showQualityHelp = false }) {
+                    Text(stringResource(R.string.quality_help_got_it))
+                }
             }
         )
     }

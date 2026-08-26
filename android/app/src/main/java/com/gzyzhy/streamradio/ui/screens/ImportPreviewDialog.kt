@@ -7,7 +7,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.gzyzhy.streamradio.R
 import com.gzyzhy.streamradio.data.Station
 
 // 导入预览对话框：勾选要导入的台
@@ -29,7 +31,7 @@ fun ImportPreviewDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("选择要导入的台") },
+        title = { Text(stringResource(R.string.import_preview_title)) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 LazyColumn(modifier = Modifier.weight(1f, fill = false).heightIn(max = 400.dp)) {
@@ -59,7 +61,7 @@ fun ImportPreviewDialog(
                                     maxLines = 1)
                             }
                             if (exists) {
-                                Text("已存在",
+                                Text(stringResource(R.string.import_already_exists),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
@@ -68,7 +70,7 @@ fun ImportPreviewDialog(
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "共 ${candidates.size} 个，可导入 $importableCount 个，重复 $duplicateCount 个",
+                    stringResource(R.string.import_summary, candidates.size, importableCount, duplicateCount),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -80,10 +82,10 @@ fun ImportPreviewDialog(
                     onConfirm(candidates.filter { it.id in selected })
                 },
                 enabled = selected.isNotEmpty()
-            ) { Text("导入 (${selected.size})") }
+            ) { Text(stringResource(R.string.import_button, selected.size)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
         }
     )
 }

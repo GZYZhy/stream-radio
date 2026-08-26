@@ -96,6 +96,7 @@ fun AppNavHost(
     if (showPlayer && playbackState.currentStation != null) {
         NowPlayingSheet(
             repo = repo,
+            stations = stations,
             playbackState = playbackState,
             onDismiss = { showPlayer = false }
         )

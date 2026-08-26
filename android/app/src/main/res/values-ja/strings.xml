@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ネットラジオ</string>
+    <string name="nav_all_stations">すべての局</string>
+    <string name="nav_favorites">お気に入り</string>
+    <string name="nav_settings">設定</string>
+    <string name="nav_help">ヘルプ</string>
+    <string name="nav_about">このアプリについて</string>
+
+    <string name="search_placeholder">局を検索…</string>
+    <string name="empty_stations_title">局がありません</string>
+    <string name="empty_stations_desc">右上の + をタップして追加するか、m3u リストをインポートしてください</string>
+    <string name="empty_favorites_title">お気に入りはありません</string>
+    <string name="empty_favorites_hint">局の右端の星アイコンをタップするか、長押ししてお気に入りに追加してください</string>
+
+    <string name="add_station">局を追加</string>
+    <string name="edit_station">局を編集</string>
+    <string name="name">名前</string>
+    <string name="stream_url">配信URL</string>
+    <string name="cancel">キャンセル</string>
+    <string name="save">保存</string>
+    <string name="add">追加</string>
+    <string name="delete">削除</string>
+    <string name="edit">編集</string>
+    <string name="ok">OK</string>
+    <string name="confirm">OK</string>
+
+    <string name="favorite">お気に入り</string>
+    <string name="unfavorite">お気に入り解除</string>
+    <string name="favorited">お気に入り済み</string>
+    <string name="move_up">上に移動</string>
+    <string name="move_down">下に移動</string>
+
+    <string name="import_failed_title">インポート失敗</string>
+    <string name="import_failed_encoding">ファイルを読み取れません（エンコーディング非対応）。テキスト形式の m3u プレイリストか確認してください。</string>
+    <string name="import_failed_empty">ファイルに局が見つかりません。#EXTINF 名前行または http(s) URL 行が含まれているか確認してください。</string>
+    <string name="import_failed_read">ファイルの読み取りに失敗しました：%1$s</string>
+
+    <string name="import_preview_title">インポートする局を選択</string>
+    <string name="import_already_exists">追加済み</string>
+    <string name="import_summary">合計：%1$d 件、追加可能：%2$d 件、重複：%3$d 件</string>
+    <string name="import_button">インポート（%1$d）</string>
+
+    <string name="now_playing_connecting">接続中…</string>
+    <string name="now_playing_latency">遅延 %1$d ms</string>
+    <string name="sleep_timer_title">スリープタイマー</string>
+    <string name="sleep_timer_active">タイマー作動中</string>
+    <string name="sleep_timer_remaining">スリープタイマー %1$s</string>
+    <string name="sleep_timer_minutes">%1$d 分</string>
+    <string name="sleep_timer_custom">カスタム…</string>
+    <string name="sleep_timer_cancel">タイマー解除</string>
+    <string name="sleep_timer_remaining_text">%1$s 後に停止します</string>
+    <string name="sleep_timer_hint">時間を選択すると、タイマー終了時に再生が自動停止します</string>
+    <string name="sleep_timer_custom_title">カスタム時間</string>
+    <string name="sleep_timer_custom_hint">分単位で入力してください（例：25）</string>
+    <string name="minutes">分</string>
+    <string name="quality_help_title">音質について</string>
+    <string name="quality_help_message">音質は配信元とネットワーク環境によります</string>
+    <string name="quality_help_got_it">了解</string>
+
+    <string name="quality_mono">モノラル</string>
+    <string name="quality_stereo">ステレオ</string>
+    <string name="quality_channels">%1$d チャンネル</string>
+
+    <string name="settings_title">設定</string>
+    <string name="settings_section_appearance">外観</string>
+    <string name="settings_appearance">テーマ</string>
+    <string name="settings_appearance_system">システムに従う</string>
+    <string name="settings_appearance_light">ライト</string>
+    <string name="settings_appearance_dark">ダーク</string>
+    <string name="settings_language">言語</string>
+    <string name="settings_language_system">システムに従う</string>
+    <string name="settings_language_zh">简体中文</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_fr">Français</string>
+    <string name="settings_language_ja">日本語</string>
+    <string name="settings_language_restart_hint">言語の変更はアプリを再起動した後に反映されます</string>
+
+    <string name="settings_section_subscription">購読</string>
+    <string name="settings_auto_sync">起動時に自動同期</string>
+    <string name="settings_no_subscription">まだ購読はありません。下に m3u URL を追加して、同期ボタンで局を取得してください（配信URLで重複除去）。</string>
+    <string name="settings_sync_manual">すべての購読を同期</string>
+    <string name="settings_syncing">同期中…</string>
+    <string name="settings_add_subscription">購読を追加</string>
+    <string name="settings_sync_success">%1$d 局追加されました（配信URLで重複除去）</string>
+    <string name="settings_sync_failed">同期に失敗しました。ネットワークと購読URLを確認してください。</string>
+    <string name="settings_sub_name">名前</string>
+    <string name="settings_sub_url">m3u URL</string>
+    <string name="settings_delete_subscription">購読を削除</string>
+
+    <string name="settings_section_network">ネットワーク</string>
+    <string name="settings_check_connectivity">すべての局を確認</string>
+    <string name="settings_checking">確認中…</string>
+    <string name="settings_check_result">再生可：%1$d、失敗：%2$d</string>
+    <string name="settings_delete_all_failed">失敗分をすべて削除</string>
+    <string name="settings_failed_default">失敗</string>
+    <string name="settings_remove_from_list">リストから削除</string>
+
+    <string name="settings_section_other">その他</string>
+    <string name="settings_help">ヘルプ</string>
+    <string name="settings_about">このアプリについて</string>
+    <string name="settings_disclaimer">免責事項</string>
+    <string name="settings_check_update">アップデートを確認</string>
+    <string name="checking_update">確認中…</string>
+    <string name="update_available_title">新しいバージョンがあります：%1$s</string>
+    <string name="update_notes_empty">（リリースノートはありません）</string>
+    <string name="update_go">ダウンロード</string>
+    <string name="update_later">後で</string>
+    <string name="update_latest">最新バージョンです</string>
+    <string name="update_failed">確認に失敗しました。ネットワークを確認してもう一度お試しください。</string>
+
+    <string name="about_title">このアプリについて</string>
+    <string name="about_section_info">情報</string>
+    <string name="about_section_description">説明</string>
+    <string name="about_version">バージョン</string>
+    <string name="about_author">作者</string>
+    <string name="about_license">ライセンス</string>
+    <string name="about_github">GitHub リポジトリ</string>
+    <string name="about_blog">作者のブログ</string>
+    <string name="about_disclaimer_link">免責事項</string>
+    <string name="about_description">再生・お気に入り・m3u インポート/購読・番組情報表示・通知操作などに対応した、軽量なネイティブネットラジオプレイヤーです。\n\n本アプリは音声コンテンツを運営・保存・提供するものではありません。すべての再生は、ユーザーが自分で追加した音声ストリームURLに対して行われます。\n音質はネットワーク環境と配信元に依存します。合法的に利用できる音源のみ追加してください。\n\n© 2026 GZYZhy</string>
+
+    <string name="help_title">ヘルプ</string>
+    <string name="help_getting_started">はじめかた</string>
+    <string name="help_play">局を再生する</string>
+    <string name="help_play_desc">局をタップすると再生が始まります</string>
+    <string name="help_search">局を検索する</string>
+    <string name="help_search_desc">上部の検索バーで名前やURLで絞り込めます</string>
+    <string name="help_program_info">番組情報</string>
+    <string name="help_program_info_desc">配信元が番組情報を提供している場合、自動的に表示されます</string>
+    <string name="help_station_mgmt">局の管理</string>
+    <string name="help_add_station">局を追加する</string>
+    <string name="help_add_station_desc">右上の + をタップし、名前と配信URLを入力してください</string>
+    <string name="help_import_local">ローカルからインポート</string>
+    <string name="help_import_desc">ダウンロードアイコンをタップし、m3u ファイルを選んでください</string>
+    <string name="help_long_press">局を長押し</string>
+    <string name="help_long_press_desc">編集 / 上に移動 / 下に移動 / お気に入り / 削除</string>
+    <string name="help_swipe_left">局を左スワイプ</string>
+    <string name="help_swipe_left_desc">編集 / 削除</string>
+    <string name="help_favorites">お気に入り</string>
+    <string name="help_favorite">お気に入りに登録</string>
+    <string name="help_favorite_desc">長押しするか行末の星アイコンをタップ。通知からも操作できます</string>
+    <string name="help_favorites_list">お気に入り一覧</string>
+    <string name="help_favorites_list_desc">サイドバー → お気に入り で全件を確認できます</string>
+    <string name="help_subscriptions">購読</string>
+    <string name="help_sub_entry">場所</string>
+    <string name="help_sub_entry_desc">サイドバー → 設定 → 購読</string>
+    <string name="help_sub_add">購読を追加</string>
+    <string name="help_sub_add_desc">名前と m3u URL を入力してください</string>
+    <string name="help_sub_manual_sync">手動同期</string>
+    <string name="help_sub_manual_sync_desc">リストをダウンロードして解析し、まだ存在しない局だけを追加します（URLで重複除去）</string>
+    <string name="help_sub_auto_sync">起動時自動同期</string>
+    <string name="help_sub_auto_sync_desc">オンにすると、起動時に購読を自動で取得・同期します</string>
+    <string name="help_sub_note">備考</string>
+    <string name="help_sub_note_desc">同期によって既存の局が削除されることはなく、新しい局が追加されるだけです</string>
+    <string name="help_network">ネットワーク</string>
+    <string name="help_connectivity_check">接続確認</string>
+    <string name="help_connectivity_check_desc">サイドバー → 設定 → すべての局を確認</string>
+    <string name="help_delete_station">局を削除</string>
+    <string name="help_delete_desc">失敗分をまとめて削除 / 左スワイプで個別削除</string>
+    <string name="help_network_note">備考</string>
+    <string name="help_network_note_desc">局の数が多いと、確認に時間がかかる場合があります</string>
+    <string name="help_appearance_other">外観・その他</string>
+    <string name="help_theme">テーマ</string>
+    <string name="help_theme_desc">設定 → 外観：システム / ライト / ダーク</string>
+    <string name="help_background_playback">バックグラウンド再生</string>
+    <string name="help_background_playback_desc">通知から番組情報の確認や局の切り替えができます</string>
+    <string name="help_quality_indicator">音質インジケーター</string>
+    <string name="help_quality_indicator_desc">再生画面でビットレート・フォーマット・遅延・チャンネル数などを表示します（取得できる場合）</string>
+
+    <string name="play">再生</string>
+    <string name="pause">一時停止</string>
+    <string name="next">次へ</string>
+    <string name="previous">前へ</string>
+    <string name="notification_channel_playback">再生コントロール</string>
+    <string name="notification_channel_playback_desc">ラジオの再生コントロール</string>
+
+    <string name="error_invalid_url">配信URLが無効です</string>
+    <string name="error_playback_failed">再生に失敗しました</string>
+    <string name="error_invalid_address">無効なアドレスです</string>
+
+    <string name="crash_report_title">前回の実行でクラッシュしました</string>
+    <string name="crash_report_message">前回アプリが異常終了しました。クラッシュログを表示しますか？</string>
+    <string name="crash_report_view">表示</string>
+    <string name="crash_report_close">閉じる</string>
+</resources>

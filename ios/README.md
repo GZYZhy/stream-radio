@@ -1,5 +1,7 @@
 # 网络电台（iOS / iPadOS 版）
 
+[English](README.en.md)
+
 macOS 版（PyQt6）的 SwiftUI 原生移植。仓库内已含完整 Xcode 工程，直接用 Xcode 打开即可构建运行。
 
 ## 功能特性
@@ -11,7 +13,7 @@ macOS 版（PyQt6）的 SwiftUI 原生移植。仓库内已含完整 Xcode 工�
 - **失败台管理**：一键删除全部连接失败的台，列表项左滑可单个删除
 - **悬浮球**：播放页收起后最小化为右下角小圆球，点击重新打开
 - **后台播放**：锁屏 / 切后台继续播放；支持 http 明文流源
-- 版本 1.2，支持 iPhone / iPad（iOS 17+）
+- 当前版本 1.6，支持 iPhone / iPad（iOS 17+）
 
 ## 构建运行
 

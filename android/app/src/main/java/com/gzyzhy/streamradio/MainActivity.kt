@@ -16,6 +16,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
@@ -23,10 +24,23 @@ import com.gzyzhy.streamradio.data.StationRepository
 import com.gzyzhy.streamradio.service.RadioPlaybackService
 import com.gzyzhy.streamradio.ui.AppNavHost
 import com.gzyzhy.streamradio.ui.theme.StreamRadioTheme
+import com.gzyzhy.streamradio.util.LocaleHelper
 import com.gzyzhy.streamradio.util.SettingsManager
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
+
+    // 应用语言设置（重启生效）：在基础 context 上应用所选语言后再传给 super
+    override fun attachBaseContext(newBase: Context?) {
+        val base = newBase ?: return super.attachBaseContext(newBase)
+        val lang = try {
+            runBlocking { LocaleHelper.getAppLanguage(base) }
+        } catch (_: Exception) {
+            "system"
+        }
+        super.attachBaseContext(LocaleHelper.applyLanguage(base, lang))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,7 +136,7 @@ private fun CrashReportDialog() {
     if (showDialog && crash != null) {
         AlertDialog(
             onDismissRequest = { },
-            title = { Text("上次崩溃（请截图反馈）") },
+            title = { Text(stringResource(R.string.crash_report_title)) },
             text = {
                 Text(
                     text = crash,
@@ -136,7 +150,7 @@ private fun CrashReportDialog() {
                     context.getSharedPreferences("crash_report", Context.MODE_PRIVATE)
                         .edit().clear().commit()
                     showDialog = false
-                }) { Text("已记录") }
+                }) { Text(stringResource(R.string.crash_report_close)) }
             }
         )
     }

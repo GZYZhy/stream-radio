@@ -15,9 +15,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.gzyzhy.streamradio.PlaybackState
+import com.gzyzhy.streamradio.R
 import com.gzyzhy.streamradio.data.M3UParser
 import com.gzyzhy.streamradio.data.Station
 import com.gzyzhy.streamradio.data.StationRepository
@@ -73,7 +75,7 @@ fun StationListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("全部电台") },
+                title = { Text(stringResource(R.string.nav_all_stations)) },
                 actions = {
                     IconButton(onClick = { showAddDialog = true }) {
                         Icon(Icons.Default.Add, contentDescription = "添加")
@@ -100,14 +102,14 @@ fun StationListScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    placeholder = { Text("搜索电台…") },
+                    placeholder = { Text(stringResource(R.string.search_placeholder)) },
                     leadingIcon = { Icon(Icons.Default.Search, null) },
                     singleLine = true
                 )
 
                 if (filtered.isEmpty()) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("暂无电台，点右上角 + 添加",
+                        Text(stringResource(R.string.empty_stations_title),
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 } else {
@@ -150,18 +152,18 @@ fun StationListScreen(
         var url by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
-            title = { Text("添加电台") },
+            title = { Text(stringResource(R.string.add_station)) },
             text = {
                 Column {
                     OutlinedTextField(
                         value = name, onValueChange = { name = it },
-                        label = { Text("名称") }, singleLine = true,
+                        label = { Text(stringResource(R.string.name)) }, singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = url, onValueChange = { url = it },
-                        label = { Text("播放地址") }, singleLine = true,
+                        label = { Text(stringResource(R.string.stream_url)) }, singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -179,10 +181,10 @@ fun StationListScreen(
                         }
                     },
                     enabled = name.trim().isNotEmpty() && url.trim().isNotEmpty()
-                ) { Text("添加") }
+                ) { Text(stringResource(R.string.add)) }
             },
             dismissButton = {
-                TextButton(onClick = { showAddDialog = false }) { Text("取消") }
+                TextButton(onClick = { showAddDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -193,18 +195,18 @@ fun StationListScreen(
         var url by remember { mutableStateOf(editingStation!!.url) }
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
-            title = { Text("编辑电台") },
+            title = { Text(stringResource(R.string.edit_station)) },
             text = {
                 Column {
                     OutlinedTextField(
                         value = name, onValueChange = { name = it },
-                        label = { Text("名称") }, singleLine = true,
+                        label = { Text(stringResource(R.string.name)) }, singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = url, onValueChange = { url = it },
-                        label = { Text("播放地址") }, singleLine = true,
+                        label = { Text(stringResource(R.string.stream_url)) }, singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -218,10 +220,10 @@ fun StationListScreen(
                         }
                     },
                     enabled = name.trim().isNotEmpty()
-                ) { Text("保存") }
+                ) { Text(stringResource(R.string.save)) }
             },
             dismissButton = {
-                TextButton(onClick = { showEditDialog = false }) { Text("取消") }
+                TextButton(onClick = { showEditDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }

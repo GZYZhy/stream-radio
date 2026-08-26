@@ -1,0 +1,223 @@
+/* ==== 全般 ==== */
+"app_name" = "ネットラジオ";
+"cancel" = "キャンセル";
+"confirm" = "OK";
+"save" = "保存";
+"add" = "追加";
+"delete" = "削除";
+"edit" = "編集";
+"ok" = "OK";
+"close" = "閉じる";
+"name" = "名前";
+"url" = "配信URL";
+"m3u_link" = "m3u URL";
+"search_placeholder" = "局を検索…";
+
+/* ==== サイドバー ==== */
+"sidebar_section_stations" = "ラジオ局";
+"sidebar_all_stations" = "すべての局";
+"sidebar_favorites" = "お気に入り";
+"sidebar_section_more" = "その他";
+"sidebar_settings" = "設定";
+"sidebar_help" = "ヘルプ";
+"sidebar_about" = "このアプリについて";
+
+/* ==== 局一覧 ==== */
+"nav_title_all_stations" = "すべての局";
+"nav_title_favorites" = "お気に入り";
+"empty_stations_title" = "局がありません";
+"empty_stations_desc" = "右上の + をタップして追加するか、m3u リストをインポートしてください";
+"empty_favorites_title" = "お気に入りはありません";
+"empty_favorites_hint_ios" = "局の右端の星アイコンをタップするか、長押ししてお気に入りに追加してください";
+"empty_favorites_hint_macos" = "局の右端の星アイコンをクリックするか、右クリックしてお気に入りに追加してください";
+"add_station_title" = "局を追加";
+"edit_station_title" = "局を編集";
+"import_failed_title" = "インポート失敗";
+"import_failed_encoding" = "ファイルを読み取れません（エンコーディング非対応）。テキスト形式の m3u プレイリストか確認してください。";
+"import_failed_empty" = "ファイルに局が見つかりません。#EXTINF 名前行または http(s) URL 行が含まれているか確認してください。";
+"import_failed_read" = "ファイルの読み取りに失敗しました：%@";
+
+/* ==== インポートプレビュー ==== */
+"import_preview_title" = "インポートする局を選択";
+"import_already_exists" = "追加済み";
+"import_summary" = "合計：%ld 件、追加可能：%ld 件、重複：%ld 件";
+"import_button" = "インポート（%ld）";
+
+/* ==== 局行 ==== */
+"row_unfavorite" = "お気に入り解除";
+"row_favorite" = "お気に入りに追加";
+"row_move_up" = "上に移動";
+"row_move_down" = "下に移動";
+"row_delete_from_list" = "リストから削除";
+"row_delete_subscription" = "登録を削除";
+
+/* ==== 再生中 ==== */
+"now_playing_connecting" = "接続中…";
+"now_playing_latency" = "遅延 %ld ms";
+"now_playing_favorited" = "お気に入り済み";
+"now_playing_favorite" = "お気に入り";
+"sleep_timer_title" = "スリープタイマー";
+"sleep_timer_active" = "タイマー作動中";
+"sleep_timer_remaining" = "スリープタイマー %@";
+"sleep_timer_minutes" = "%ld 分";
+"sleep_timer_custom" = "カスタム…";
+"sleep_timer_cancel" = "タイマー解除";
+"sleep_timer_remaining_text" = "%@ 後に停止します";
+"sleep_timer_hint" = "時間を選択すると、タイマー終了時に再生が自動停止します";
+"sleep_timer_custom_title" = "カスタム時間";
+"sleep_timer_custom_placeholder" = "分";
+"sleep_timer_custom_hint" = "分単位で入力してください（例：25）";
+"quality_help_title" = "音質について";
+"quality_help_message" = "音質は配信元とネットワーク環境によります";
+"quality_help_got_it" = "了解";
+
+/* ==== 音質 ==== */
+"quality_mono" = "モノラル";
+"quality_stereo" = "ステレオ";
+"quality_channels" = "%ld チャンネル";
+
+/* ==== 設定 ==== */
+"nav_title_settings" = "設定";
+"settings_section_appearance" = "外観";
+"settings_appearance" = "テーマ";
+"settings_appearance_system" = "システムに従う";
+"settings_appearance_light" = "ライト";
+"settings_appearance_dark" = "ダーク";
+"settings_language" = "言語";
+"settings_language_system" = "システムに従う";
+"settings_language_zh" = "简体中文";
+"settings_language_en" = "English";
+"settings_language_fr" = "Français";
+"settings_language_ja" = "日本語";
+"settings_language_restart_hint" = "言語の変更は次回起動時に反映されます";
+"settings_section_window" = "ウィンドウ";
+"settings_close_behavior" = "メインウィンドウを閉じるとき";
+"settings_close_ask" = "毎回確認する";
+"settings_close_hide" = "メニューバーに格納";
+"settings_close_quit" = "アプリを終了";
+"settings_close_hint" = "「メニューバーに格納」を選ぶとウィンドウを閉じてもメニューバーに残ります。「アプリを終了」を選ぶと直接終了します。";
+"settings_section_subscription" = "購読";
+"settings_auto_sync" = "起動時に自動同期";
+"settings_no_subscription" = "まだ購読はありません。下に m3u URL を追加して、同期ボタンで局を取得してください（配信URLで重複除去）。";
+"settings_sync_manual" = "すべての購読を同期";
+"settings_syncing" = "同期中…";
+"settings_add_subscription" = "購読を追加";
+"settings_sync_result_success" = "%ld 局追加されました（配信URLで重複除去）";
+"settings_sync_result_failed" = "同期に失敗しました。ネットワークと購読URLを確認してください。";
+"settings_add_sub_title" = "購読を追加";
+"settings_sub_name" = "名前";
+"settings_sub_url" = "m3u URL";
+"settings_section_network" = "ネットワーク";
+"settings_check_connectivity" = "すべての局を確認";
+"settings_checking" = "確認中…";
+"settings_check_result" = "再生可：%ld、失敗：%ld";
+"settings_delete_all_failed" = "失敗分をすべて削除";
+"settings_failed_default" = "失敗";
+
+/* ==== アップデート確認 ==== */
+"settings_section_other" = "その他";
+"settings_check_update" = "アップデートを確認";
+"checking_update" = "確認中…";
+"update_available_title" = "新しいバージョンがあります：%@";
+"update_notes_empty" = "（リリースノートはありません）";
+"update_go" = "ダウンロード";
+"update_later" = "後で";
+"update_latest" = "最新バージョンです";
+"update_failed" = "確認に失敗しました。ネットワークを確認してもう一度お試しください。";
+
+/* ==== このアプリについて ==== */
+"nav_title_about" = "このアプリについて";
+"about_section_info" = "情報";
+"about_version" = "バージョン";
+"about_author" = "作者";
+"about_license" = "ライセンス";
+"about_github" = "GitHub リポジトリ";
+"about_blog" = "作者のブログ";
+"about_disclaimer_link" = "免責事項";
+"about_section_description" = "説明";
+"about_description" = "再生・お気に入り・m3u インポート/購読・番組情報表示・通知操作などに対応した、軽量なネイティブネットラジオプレイヤーです。\n\n本アプリは音声コンテンツを運営・保存・提供するものではありません。すべての再生は、ユーザーが自分で追加した音声ストリームURLに対して行われます。\n音質はネットワーク環境と配信元に依存します。合法的に利用できる音源のみ追加してください。\n\n© 2026 GZYZhy";
+
+/* ==== ヘルプ ==== */
+"nav_title_help" = "ヘルプ";
+"help_section_getting_started" = "はじめかた";
+"help_play" = "局を再生する";
+"help_play_desc" = "局をタップすると再生が始まります";
+"help_search" = "局を検索する";
+"help_search_desc" = "上部の検索バーで名前やURLで絞り込めます";
+"help_program_info" = "番組情報";
+"help_program_info_desc" = "配信元が番組情報を提供している場合、自動的に表示されます";
+"help_section_station_mgmt" = "局の管理";
+"help_add_station" = "局を追加する";
+"help_add_station_desc" = "右上の + をタップし、名前と配信URLを入力してください";
+"help_import_local" = "ローカルからインポート";
+"help_import_ios" = "右上のダウンロードアイコンをタップし、ファイル App から m3u ファイルを選んでください";
+"help_import_macos" = "右上のダウンロードアイコンをクリックし、m3u ファイルを選んでください";
+"help_long_press_ios" = "局を長押し";
+"help_right_click_macos" = "局を右クリック";
+"help_context_menu_desc" = "編集 / 上に移動 / 下に移動 / お気に入り / 削除";
+"help_swipe_left" = "局を左スワイプ";
+"help_swipe_left_desc" = "編集 / 削除";
+"help_section_favorites" = "お気に入り";
+"help_favorite" = "お気に入りに登録";
+"help_favorite_ios" = "長押しするか行末の星アイコンをタップ。コントロールセンターからも操作できます";
+"help_favorite_macos" = "星アイコンをクリックするか右クリック。コントロールセンターからも操作できます";
+"help_favorites_list" = "お気に入り一覧";
+"help_favorites_list_desc" = "サイドバー → お気に入り で全件を確認できます";
+"help_section_subscriptions" = "購読";
+"help_sub_entry" = "場所";
+"help_sub_entry_desc" = "サイドバー → 設定 → 購読";
+"help_sub_add" = "購読を追加";
+"help_sub_add_desc" = "名前と m3u URL を入力してください";
+"help_sub_manual_sync" = "手動同期";
+"help_sub_manual_sync_desc" = "リストをダウンロードして解析し、まだ存在しない局だけを追加します（URLで重複除去）";
+"help_sub_auto_sync" = "起動時自動同期";
+"help_sub_auto_sync_desc" = "オンにすると、起動時に購読を自動で取得・同期します";
+"help_sub_note" = "備考";
+"help_sub_note_desc" = "同期によって既存の局が削除されることはなく、新しい局が追加されるだけです";
+"help_section_network" = "ネットワーク";
+"help_connectivity_check" = "接続確認";
+"help_connectivity_check_desc" = "サイドバー → 設定 → すべての局を確認";
+"help_delete_station" = "局を削除";
+"help_delete_ios" = "失敗分をまとめて削除 / 左スワイプで個別削除";
+"help_delete_macos" = "失敗分をまとめて削除 / 個別に削除";
+"help_network_note" = "備考";
+"help_network_note_desc" = "局の数が多いと、確認に時間がかかる場合があります";
+"help_section_appearance_other" = "外観・その他";
+"help_theme" = "テーマ";
+"help_theme_desc" = "設定 → 外観：システム / ライト / ダーク";
+"help_background_playback" = "バックグラウンド再生";
+"help_background_playback_desc" = "通知センター / コントロールセンターで番組情報の確認や局の切り替えができます";
+"help_quality_indicator" = "音質インジケーター";
+"help_quality_indicator_desc" = "再生画面でビットレート・フォーマット・遅延・チャンネル数などを表示します（取得できる場合）";
+"help_playback_device" = "出力先";
+"help_playback_device_desc" = "コントロールセンターで音声出力機器を切り替えられます";
+
+/* ==== macOS メニュー ==== */
+"mac_menu_about" = "ネットラジオについて";
+"mac_menu_import_m3u" = "m3u をインポート…";
+"mac_menu_sync_subscriptions" = "購読を同期";
+"mac_menu_play" = "再生";
+"mac_menu_play_pause" = "再生 / 一時停止";
+"mac_menu_previous" = "前へ";
+"mac_menu_next" = "次へ";
+"mac_menu_toggle_favorite" = "お気に入り切り替え";
+"mac_menu_help" = "ネットラジオ ヘルプ";
+
+/* ==== macOS メニューバー ==== */
+"mac_tray_accessibility" = "ネットラジオ";
+"mac_tray_not_playing" = "再生していません";
+"mac_tray_now_playing" = "再生中：%@";
+"mac_tray_pause" = "一時停止";
+"mac_tray_play" = "再生";
+"mac_tray_now_playing_nav" = "再生中…";
+"mac_tray_settings" = "設定…";
+"mac_tray_quit" = "ネットラジオを終了";
+"mac_close_alert_title" = "ネットラジオを閉じる";
+"mac_close_alert_message" = "メニューバーに格納しますか、それとも終了しますか？";
+"mac_close_remember" = "この選択を記憶し、次回から表示しない";
+"mac_import_prompt" = "インポート";
+
+/* ==== 再生エラー ==== */
+"error_invalid_url" = "配信URLが無効です";
+"error_playback_failed" = "再生に失敗しました";
+"error_invalid_address" = "無効なアドレスです";

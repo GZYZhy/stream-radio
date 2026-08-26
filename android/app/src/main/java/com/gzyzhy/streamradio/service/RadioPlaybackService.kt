@@ -23,6 +23,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.session.MediaButtonReceiver
 import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionResult
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionToken
 import com.gzyzhy.streamradio.MainActivity
@@ -164,7 +165,7 @@ class RadioPlaybackService : MediaSessionService() {
             }
 
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
-                errorMessage = error.message ?: "播放失败"
+                errorMessage = error.message ?: getString(R.string.error_playback_failed)
                 isPlaying = false
                 notifyChanged()
             }
@@ -262,7 +263,7 @@ class RadioPlaybackService : MediaSessionService() {
         startQualityMonitoring()
         } catch (e: Throwable) {
             Log.e("RadioPlaybackService", "播放异常", e)
-            errorMessage = e.message ?: "播放失败"
+            errorMessage = e.message ?: getString(R.string.error_playback_failed)
             notifyChanged()
         }
     }
@@ -462,7 +463,7 @@ class RadioPlaybackService : MediaSessionService() {
                 "playback_channel",
                 getString(R.string.notification_channel_playback),
                 NotificationManager.IMPORTANCE_LOW
-            ).apply { description = "电台播放控制" }
+            ).apply { description = getString(R.string.notification_channel_playback_desc) }
             getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
         }
     }
@@ -485,8 +486,9 @@ class RadioPlaybackService : MediaSessionService() {
 
         // 大小字自适应（对齐 iOS 锁屏）：有节目单时标题=节目名、副标题=台名；
         // 无节目单时标题=台名、副标题=网络电台
-        val title = programTitle ?: (currentStation?.name ?: "网络电台")
-        val text = programTitle?.let { currentStation?.name ?: "网络电台" } ?: "网络电台"
+        val title = programTitle ?: (currentStation?.name ?: getString(R.string.app_name))
+        val text = programTitle?.let { currentStation?.name ?: getString(R.string.app_name) }
+            ?: getString(R.string.app_name)
         val builder = NotificationCompat.Builder(this, "playback_channel")
             .setContentTitle(title)
             .setContentText(text)
@@ -504,15 +506,15 @@ class RadioPlaybackService : MediaSessionService() {
                         .setMediaSession(session.sessionCompatToken)
                         .setShowActionsInCompactView(0, 1, 2)
                 )
-                .addAction(android.R.drawable.ic_media_previous, "上一台",
+                .addAction(android.R.drawable.ic_media_previous, getString(R.string.previous),
                     mediaButtonPendingIntent(KeyEvent.KEYCODE_MEDIA_PREVIOUS))
                 .addAction(
                     if (isPlaying) android.R.drawable.ic_media_pause
                     else android.R.drawable.ic_media_play,
-                    if (isPlaying) "暂停" else "播放",
+                    if (isPlaying) getString(R.string.pause) else getString(R.string.play),
                     mediaButtonPendingIntent(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
                 )
-                .addAction(android.R.drawable.ic_media_next, "下一台",
+                .addAction(android.R.drawable.ic_media_next, getString(R.string.next),
                     mediaButtonPendingIntent(KeyEvent.KEYCODE_MEDIA_NEXT))
         }
         return builder.build()
@@ -539,13 +541,35 @@ class RadioPlaybackService : MediaSessionService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
 
-    // MediaSession 回调（处理自定义动作）
+    // MediaSession 回调：拦截通知栏 / 系统控制中心的「下一首 / 上一首」
+    // Media3 默认直接交给 ExoPlayer，但本项目是单曲模式（单媒体项），
+    // player.seekToNext 什么也不做，必须手动基于电台列表切换。
     inner class SessionCallback : MediaSession.Callback {
         override fun onConnect(
             session: MediaSession,
             controller: MediaSession.ControllerInfo
         ): MediaSession.ConnectionResult {
             return super.onConnect(session, controller)
+        }
+
+        override fun onPlayerCommandRequest(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            @androidx.media3.common.Player.Command command: Int
+        ): Int {
+            return when (command) {
+                androidx.media3.common.Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM,
+                androidx.media3.common.Player.COMMAND_SEEK_TO_NEXT -> {
+                    next()
+                    SessionResult.RESULT_SUCCESS
+                }
+                androidx.media3.common.Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM,
+                androidx.media3.common.Player.COMMAND_SEEK_TO_PREVIOUS -> {
+                    previous()
+                    SessionResult.RESULT_SUCCESS
+                }
+                else -> super.onPlayerCommandRequest(session, controller, command)
+            }
         }
     }
 

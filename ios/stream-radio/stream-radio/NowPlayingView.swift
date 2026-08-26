@@ -15,11 +15,12 @@ struct NowPlayingView: View {
     /// 可选的定时停播时长（分钟）
     private let presetMinutes = [10, 15, 30, 45, 60, 90, 120]
 
-    /// 日期时间格式：中文、含秒，用于播放页时钟
+    /// 日期时间格式：跟随系统语言，用于播放页时钟
     private static let timeFormatter: DateFormatter = {
         let f = DateFormatter()
-        f.locale = Locale(identifier: "zh_CN")
-        f.dateFormat = "yyyy年M月d日 HH:mm:ss"
+        f.locale = Locale.current
+        f.dateStyle = .medium
+        f.timeStyle = .medium
         return f
     }()
 
@@ -53,7 +54,7 @@ struct NowPlayingView: View {
             Text(player.currentStation?.name ?? "")
                 .font(.title2.bold())
                 .multilineTextAlignment(.center)
-            Text(player.programTitle ?? "正在连接…")
+            Text(player.programTitle ?? NSLocalizedString("now_playing_connecting", comment: ""))
                 .font(.headline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -69,7 +70,7 @@ struct NowPlayingView: View {
                         HStack(spacing: 6) {
                             Text(q.summary)
                             if let latency = player.latencyMs {
-                                Text("延迟 \(latency) ms")
+                                Text(String(format: NSLocalizedString("now_playing_latency", comment: ""), latency))
                                     .foregroundStyle(Self.latencyColor(latency))
                             }
                             Button { showingQualityHelp = true } label: {
@@ -83,7 +84,8 @@ struct NowPlayingView: View {
                         .monospacedDigit()
                     }
                     if let remaining = player.sleepTimerRemaining {
-                        Label("定时停播 \(Self.formatRemaining(remaining))",
+                        Label(String(format: NSLocalizedString("sleep_timer_remaining", comment: ""),
+                                     Self.formatRemaining(remaining)),
                               systemImage: "timer")
                         .font(.caption)
                         .foregroundStyle(.blue)
@@ -119,7 +121,9 @@ struct NowPlayingView: View {
                             store.toggleFavorite(station)
                             player.refreshBookmarkState()
                         } label: {
-                            Label(isFavorite ? "已标星" : "标星",
+                            Label(isFavorite
+                                  ? NSLocalizedString("now_playing_favorited", comment: "")
+                                  : NSLocalizedString("now_playing_favorite", comment: ""),
                                   systemImage: isFavorite ? "star.fill" : "star")
                                 .font(.headline)
                                 .foregroundStyle(isFavorite ? .yellow : .secondary)
@@ -130,20 +134,24 @@ struct NowPlayingView: View {
                     // confirmationDialog 在 macOS 上按钮过多时会显示不全（自定义项被截掉）
                     Menu {
                         ForEach(presetMinutes, id: \.self) { min in
-                            Button("\(min) 分钟") { player.setSleepTimer(minutes: min) }
+                            Button(String(format: NSLocalizedString("sleep_timer_minutes", comment: ""), min)) {
+                                player.setSleepTimer(minutes: min)
+                            }
                         }
-                        Button("自定义…") {
+                        Button(NSLocalizedString("sleep_timer_custom", comment: "")) {
                             customMinutes = ""
                             showingCustomSleep = true
                         }
                         if player.sleepTimerRemaining != nil {
-                            Button("取消定时", role: .destructive) {
+                            Button(NSLocalizedString("sleep_timer_cancel", comment: ""), role: .destructive) {
                                 player.setSleepTimer(minutes: nil)
                             }
                         }
                     } label: {
                         let isActive = player.sleepTimerRemaining != nil
-                        Label(isActive ? "定时中" : "定时停播",
+                        Label(isActive
+                              ? NSLocalizedString("sleep_timer_active", comment: "")
+                              : NSLocalizedString("sleep_timer_title", comment: ""),
                               systemImage: isActive ? "timer.fill" : "timer")
                             .font(.headline)
                             .foregroundStyle(isActive ? .blue : .secondary)
@@ -153,7 +161,9 @@ struct NowPlayingView: View {
                         showingSleepMenu.toggle()
                     } label: {
                         let isActive = player.sleepTimerRemaining != nil
-                        Label(isActive ? "定时中" : "定时停播",
+                        Label(isActive
+                              ? NSLocalizedString("sleep_timer_active", comment: "")
+                              : NSLocalizedString("sleep_timer_title", comment: ""),
                               systemImage: isActive ? "timer.fill" : "timer")
                             .font(.headline)
                             .foregroundStyle(isActive ? .blue : .secondary)
@@ -165,47 +175,48 @@ struct NowPlayingView: View {
             Spacer()
         }
         .padding()
-        .confirmationDialog("定时停播", isPresented: $showingSleepMenu, titleVisibility: .visible) {
+        .confirmationDialog(NSLocalizedString("sleep_timer_title", comment: ""), isPresented: $showingSleepMenu, titleVisibility: .visible) {
             ForEach(presetMinutes, id: \.self) { min in
-                Button("\(min) 分钟") {
+                Button(String(format: NSLocalizedString("sleep_timer_minutes", comment: ""), min)) {
                     player.setSleepTimer(minutes: min)
                 }
             }
-            Button("自定义…") {
+            Button(NSLocalizedString("sleep_timer_custom", comment: "")) {
                 customMinutes = ""
                 showingCustomSleep = true
             }
             if player.sleepTimerRemaining != nil {
-                Button("取消定时", role: .destructive) {
+                Button(NSLocalizedString("sleep_timer_cancel", comment: ""), role: .destructive) {
                     player.setSleepTimer(minutes: nil)
                 }
             }
-            Button("取消", role: .cancel) { }
+            Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
         } message: {
             if let remaining = player.sleepTimerRemaining {
-                Text("剩余 \(Self.formatRemaining(remaining)) 后停止播放")
+                Text(String(format: NSLocalizedString("sleep_timer_remaining_text", comment: ""),
+                            Self.formatRemaining(remaining)))
             } else {
-                Text("选择时长后，倒计时结束自动停止播放")
+                Text(NSLocalizedString("sleep_timer_hint", comment: ""))
             }
         }
-        .alert("自定义时长", isPresented: $showingCustomSleep) {
-            TextField("分钟", text: $customMinutes)
+        .alert(NSLocalizedString("sleep_timer_custom_title", comment: ""), isPresented: $showingCustomSleep) {
+            TextField(NSLocalizedString("sleep_timer_custom_placeholder", comment: ""), text: $customMinutes)
                 #if os(iOS)
                 .keyboardType(.numberPad)
                 #endif
-            Button("取消", role: .cancel) { }
-            Button("确定") {
+            Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { }
+            Button(NSLocalizedString("confirm", comment: "")) {
                 if let m = Int(customMinutes), m > 0 {
                     player.setSleepTimer(minutes: m)
                 }
             }
         } message: {
-            Text("输入分钟数（例如 25）")
+            Text(NSLocalizedString("sleep_timer_custom_hint", comment: ""))
         }
-        .alert("质量说明", isPresented: $showingQualityHelp) {
-            Button("知道了", role: .cancel) { }
+        .alert(NSLocalizedString("quality_help_title", comment: ""), isPresented: $showingQualityHelp) {
+            Button(NSLocalizedString("quality_help_got_it", comment: ""), role: .cancel) { }
         } message: {
-            Text("质量由电台来源和网络环境决定")
+            Text(NSLocalizedString("quality_help_message", comment: ""))
         }
     }
 }

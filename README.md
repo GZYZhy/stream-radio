@@ -1,5 +1,7 @@
 # 📻 网络电台
 
+[English](README.en.md)
+
 一款极简的网络电台（m3u）播放器，支持 **iPhone / iPad（iOS 17+）** 与 **macOS（macOS 14+）**。
 
 现已添加 Android 版本。

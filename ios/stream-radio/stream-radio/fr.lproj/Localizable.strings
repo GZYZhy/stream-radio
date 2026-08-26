@@ -1,0 +1,223 @@
+/* ==== Général ==== */
+"app_name" = "Radio en ligne";
+"cancel" = "Annuler";
+"confirm" = "OK";
+"save" = "Enregistrer";
+"add" = "Ajouter";
+"delete" = "Supprimer";
+"edit" = "Modifier";
+"ok" = "OK";
+"close" = "Fermer";
+"name" = "Nom";
+"url" = "URL du flux";
+"m3u_link" = "URL m3u";
+"search_placeholder" = "Rechercher une station…";
+
+/* ==== Barre latérale ==== */
+"sidebar_section_stations" = "Stations";
+"sidebar_all_stations" = "Toutes les stations";
+"sidebar_favorites" = "Favoris";
+"sidebar_section_more" = "Plus";
+"sidebar_settings" = "Réglages";
+"sidebar_help" = "Aide";
+"sidebar_about" = "À propos";
+
+/* ==== Liste des stations ==== */
+"nav_title_all_stations" = "Toutes les stations";
+"nav_title_favorites" = "Favoris";
+"empty_stations_title" = "Aucune station";
+"empty_stations_desc" = "Appuyez sur + en haut à droite pour ajouter une station, ou importez une liste m3u";
+"empty_favorites_title" = "Aucun favori";
+"empty_favorites_hint_ios" = "Appuyez sur l'étoile à la fin d'une ligne, ou maintenez appuyé pour ajouter aux favoris";
+"empty_favorites_hint_macos" = "Cliquez sur l'étoile à la fin d'une ligne, ou clic droit pour ajouter aux favoris";
+"add_station_title" = "Ajouter une station";
+"edit_station_title" = "Modifier la station";
+"import_failed_title" = "Échec de l'importation";
+"import_failed_encoding" = "Impossible de lire le fichier (encodage non pris en charge). Vérifiez qu'il s'agit bien d'une playlist m3u au format texte.";
+"import_failed_empty" = "Aucune station trouvée dans le fichier. Vérifiez qu'il contient des lignes #EXTINF avec un nom ou des adresses http(s).";
+"import_failed_read" = "Échec de la lecture du fichier : %@";
+
+/* ==== Aperçu d'importation ==== */
+"import_preview_title" = "Sélectionner les stations à importer";
+"import_already_exists" = "Existe déjà";
+"import_summary" = "Total : %ld, importables : %ld, en double : %ld";
+"import_button" = "Importer (%ld)";
+
+/* ==== Ligne de station ==== */
+"row_unfavorite" = "Retirer des favoris";
+"row_favorite" = "Ajouter aux favoris";
+"row_move_up" = "Monter";
+"row_move_down" = "Descendre";
+"row_delete_from_list" = "Supprimer de la liste";
+"row_delete_subscription" = "Supprimer l'abonnement";
+
+/* ==== En cours de lecture ==== */
+"now_playing_connecting" = "Connexion…";
+"now_playing_latency" = "Latence %ld ms";
+"now_playing_favorited" = "Dans les favoris";
+"now_playing_favorite" = "Favoris";
+"sleep_timer_title" = "Veille programmable";
+"sleep_timer_active" = "Minuteur en cours";
+"sleep_timer_remaining" = "Veille %@";
+"sleep_timer_minutes" = "%ld minutes";
+"sleep_timer_custom" = "Personnalisé…";
+"sleep_timer_cancel" = "Annuler le minuteur";
+"sleep_timer_remaining_text" = "S'arrête dans %@";
+"sleep_timer_hint" = "Choisissez une durée ; la lecture s'arrêtera à la fin du minuteur";
+"sleep_timer_custom_title" = "Durée personnalisée";
+"sleep_timer_custom_placeholder" = "minutes";
+"sleep_timer_custom_hint" = "Saisir en minutes (ex. 25)";
+"quality_help_title" = "Informations sur la qualité";
+"quality_help_message" = "La qualité dépend de la source de la station et des conditions réseau";
+"quality_help_got_it" = "Compris";
+
+/* ==== Qualité audio ==== */
+"quality_mono" = "Mono";
+"quality_stereo" = "Stéréo";
+"quality_channels" = "%ld canaux";
+
+/* ==== Réglages ==== */
+"nav_title_settings" = "Réglages";
+"settings_section_appearance" = "Apparence";
+"settings_appearance" = "Thème";
+"settings_appearance_system" = "Système";
+"settings_appearance_light" = "Clair";
+"settings_appearance_dark" = "Sombre";
+"settings_language" = "Langue";
+"settings_language_system" = "Système";
+"settings_language_zh" = "简体中文";
+"settings_language_en" = "English";
+"settings_language_fr" = "Français";
+"settings_language_ja" = "日本語";
+"settings_language_restart_hint" = "Le changement de langue prendra effet au prochain démarrage";
+"settings_section_window" = "Fenêtre";
+"settings_close_behavior" = "À la fermeture de la fenêtre principale";
+"settings_close_ask" = "Demander à chaque fois";
+"settings_close_hide" = "Réduire dans la barre de menus";
+"settings_close_quit" = "Quitter";
+"settings_close_hint" = "Avec « Réduire dans la barre de menus », la fermeture de la fenêtre la fait disparaître dans la barre de menus ; avec « Quitter », l'application se ferme directement.";
+"settings_section_subscription" = "Abonnements";
+"settings_auto_sync" = "Synchroniser au démarrage";
+"settings_no_subscription" = "Aucun abonnement pour le moment. Ajoutez une URL m3u ci-dessous, puis utilisez le bouton de synchronisation pour récupérer les stations (déduplication par URL de flux).";
+"settings_sync_manual" = "Synchroniser tous les abonnements";
+"settings_syncing" = "Synchronisation…";
+"settings_add_subscription" = "Ajouter un abonnement";
+"settings_sync_result_success" = "%ld station(s) ajoutée(s) (déduplication par URL de flux)";
+"settings_sync_result_failed" = "Échec de la synchronisation. Vérifiez votre réseau et les URLs d'abonnement.";
+"settings_add_sub_title" = "Ajouter un abonnement";
+"settings_sub_name" = "Nom";
+"settings_sub_url" = "URL m3u";
+"settings_section_network" = "Réseau";
+"settings_check_connectivity" = "Vérifier toutes les stations";
+"settings_checking" = "Vérification…";
+"settings_check_result" = "Lisibles : %ld, échecs : %ld";
+"settings_delete_all_failed" = "Supprimer les échecs";
+"settings_failed_default" = "Échec";
+
+/* ==== Rechercher des mises à jour ==== */
+"settings_section_other" = "Autres";
+"settings_check_update" = "Rechercher des mises à jour";
+"checking_update" = "Recherche…";
+"update_available_title" = "Mise à jour disponible : %@";
+"update_notes_empty" = "(Pas de notes de version)";
+"update_go" = "Télécharger";
+"update_later" = "Plus tard";
+"update_latest" = "Vous êtes à jour";
+"update_failed" = "Échec de la vérification. Vérifiez votre connexion et réessayez.";
+
+/* ==== À propos ==== */
+"nav_title_about" = "À propos";
+"about_section_info" = "Informations";
+"about_version" = "Version";
+"about_author" = "Auteur";
+"about_license" = "Licence";
+"about_github" = "Dépôt GitHub";
+"about_blog" = "Blog de l'auteur";
+"about_disclaimer_link" = "Avertissement";
+"about_section_description" = "Description";
+"about_description" = "Un lecteur de radio internet natif minimal, avec lecture, favoris, importation/abonnement m3u, affichage des informations de programme, contrôles par notification, etc.\n\nCette application n'exploite, n'héberge ni ne fournit de contenu audio. Toute lecture s'effectue à partir d'URL de flux ajoutées par l'utilisateur.\nLa qualité des stations dépend de votre réseau et de la source. Veuillez n'ajouter que des sources pour lesquelles vous disposez d'une autorisation légale.\n\n© 2026 GZYZhy";
+
+/* ==== Aide ==== */
+"nav_title_help" = "Aide";
+"help_section_getting_started" = "Premiers pas";
+"help_play" = "Lire une station";
+"help_play_desc" = "Appuyez sur une station pour démarrer la lecture";
+"help_search" = "Rechercher des stations";
+"help_search_desc" = "Utilisez la barre de recherche en haut pour filtrer par nom ou URL";
+"help_program_info" = "Informations sur le programme";
+"help_program_info_desc" = "Affichées automatiquement lorsque la source de la station fournit un programme";
+"help_section_station_mgmt" = "Gestion des stations";
+"help_add_station" = "Ajouter une station";
+"help_add_station_desc" = "Appuyez sur + en haut à droite et saisissez un nom et une URL de flux";
+"help_import_local" = "Importation locale";
+"help_import_ios" = "Appuyez sur l'icône de téléchargement en haut à droite et choisissez un fichier m3u dans Fichiers";
+"help_import_macos" = "Cliquez sur l'icône de téléchargement en haut à droite et choisissez un fichier m3u";
+"help_long_press_ios" = "Maintenir appuyé sur une station";
+"help_right_click_macos" = "Clic droit sur une station";
+"help_context_menu_desc" = "Modifier / Monter / Descendre / Favoris / Supprimer";
+"help_swipe_left" = "Balayer vers la gauche sur une station";
+"help_swipe_left_desc" = "Modifier / Supprimer";
+"help_section_favorites" = "Favoris";
+"help_favorite" = "Mettre une station en favori";
+"help_favorite_ios" = "Maintenir appuyé ou appuyer sur l'étoile en fin de ligne ; également disponible dans le Centre de contrôle";
+"help_favorite_macos" = "Cliquer sur l'étoile ou clic droit ; également disponible dans le Centre de contrôle";
+"help_favorites_list" = "Liste des favoris";
+"help_favorites_list_desc" = "Barre latérale → Favoris pour voir toutes les stations marquées d'une étoile";
+"help_section_subscriptions" = "Abonnements";
+"help_sub_entry" = "Où le trouver";
+"help_sub_entry_desc" = "Barre latérale → Réglages → Abonnements";
+"help_sub_add" = "Ajouter un abonnement";
+"help_sub_add_desc" = "Saisir un nom et une URL m3u";
+"help_sub_manual_sync" = "Synchronisation manuelle";
+"help_sub_manual_sync_desc" = "Télécharge et analyse la liste, puis n'ajoute que les stations absentes (déduplication par URL)";
+"help_sub_auto_sync" = "Synchronisation au démarrage";
+"help_sub_auto_sync_desc" = "Lorsqu'elle est activée, les abonnements sont récupérés et synchronisés automatiquement au démarrage";
+"help_sub_note" = "Remarque";
+"help_sub_note_desc" = "La synchronisation ne supprime jamais les stations existantes ; elle n'en ajoute que de nouvelles";
+"help_section_network" = "Réseau";
+"help_connectivity_check" = "Vérification de connectivité";
+"help_connectivity_check_desc" = "Barre latérale → Réglages → Vérifier toutes les stations";
+"help_delete_station" = "Supprimer des stations";
+"help_delete_ios" = "Tout supprimer d'un coup / balayer vers la gauche pour supprimer individuellement les stations en échec";
+"help_delete_macos" = "Tout supprimer d'un coup / supprimer individuellement les stations en échec";
+"help_network_note" = "Remarque";
+"help_network_note_desc" = "La vérification peut prendre du temps si vous avez beaucoup de stations";
+"help_section_appearance_other" = "Apparence et divers";
+"help_theme" = "Thème";
+"help_theme_desc" = "Réglages → Apparence : Système / Clair / Sombre";
+"help_background_playback" = "Lecture en arrière-plan";
+"help_background_playback_desc" = "Consultez les informations du programme et changez de station depuis la zone de notifications / le Centre de contrôle";
+"help_quality_indicator" = "Indicateur de qualité";
+"help_quality_indicator_desc" = "L'écran de lecture affiche le débit, le format, la latence et le nombre de canaux lorsque disponibles";
+"help_playback_device" = "Sortie audio";
+"help_playback_device_desc" = "Utilisez le Centre de contrôle pour changer de périphérique de sortie audio";
+
+/* ==== Menu macOS ==== */
+"mac_menu_about" = "À propos de Radio en ligne";
+"mac_menu_import_m3u" = "Importer m3u…";
+"mac_menu_sync_subscriptions" = "Synchroniser les abonnements";
+"mac_menu_play" = "Lecture";
+"mac_menu_play_pause" = "Lecture / Pause";
+"mac_menu_previous" = "Précédent";
+"mac_menu_next" = "Suivant";
+"mac_menu_toggle_favorite" = "Basculer les favoris";
+"mac_menu_help" = "Aide Radio en ligne";
+
+/* ==== Barre de menus macOS ==== */
+"mac_tray_accessibility" = "Radio en ligne";
+"mac_tray_not_playing" = "Pas en lecture";
+"mac_tray_now_playing" = "En cours de lecture : %@";
+"mac_tray_pause" = "Pause";
+"mac_tray_play" = "Lecture";
+"mac_tray_now_playing_nav" = "En cours de lecture…";
+"mac_tray_settings" = "Réglages…";
+"mac_tray_quit" = "Quitter Radio en ligne";
+"mac_close_alert_title" = "Fermer Radio en ligne";
+"mac_close_alert_message" = "Réduire dans la barre de menus ou quitter ?";
+"mac_close_remember" = "Retenir mon choix, ne plus demander";
+"mac_import_prompt" = "Importer";
+
+/* ==== Erreurs de lecture ==== */
+"error_invalid_url" = "URL de flux invalide";
+"error_playback_failed" = "Échec de la lecture";
+"error_invalid_address" = "Adresse invalide";

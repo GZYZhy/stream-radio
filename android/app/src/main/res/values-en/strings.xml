@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Stream Radio</string>
+    <string name="nav_all_stations">All Stations</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_help">Help</string>
+    <string name="nav_about">About</string>
+
+    <string name="search_placeholder">Search stations…</string>
+    <string name="empty_stations_title">No Stations</string>
+    <string name="empty_stations_desc">Tap + in the top-right to add, or import an m3u list</string>
+    <string name="empty_favorites_title">No Favorites</string>
+    <string name="empty_favorites_hint">Tap the star icon at the end of a station row, or long-press to favorite</string>
+
+    <string name="add_station">Add Station</string>
+    <string name="edit_station">Edit Station</string>
+    <string name="name">Name</string>
+    <string name="stream_url">Stream URL</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="add">Add</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="ok">OK</string>
+    <string name="confirm">OK</string>
+
+    <string name="favorite">Favorite</string>
+    <string name="unfavorite">Unfavorite</string>
+    <string name="favorited">Favorited</string>
+    <string name="move_up">Move Up</string>
+    <string name="move_down">Move Down</string>
+
+    <string name="import_failed_title">Import Failed</string>
+    <string name="import_failed_encoding">Unable to read the file (unsupported encoding). Please make sure it is a text-based m3u playlist.</string>
+    <string name="import_failed_empty">No stations found in the file. Please make sure it contains #EXTINF name lines or http(s) URL lines.</string>
+    <string name="import_failed_read">Failed to read file: %1$s</string>
+
+    <string name="import_preview_title">Select Stations to Import</string>
+    <string name="import_already_exists">Already exists</string>
+    <string name="import_summary">Total: %1$d, importable: %2$d, duplicates: %3$d</string>
+    <string name="import_button">Import (%1$d)</string>
+
+    <string name="now_playing_connecting">Connecting…</string>
+    <string name="now_playing_latency">Latency %1$d ms</string>
+    <string name="sleep_timer_title">Sleep Timer</string>
+    <string name="sleep_timer_active">Timer Active</string>
+    <string name="sleep_timer_remaining">Sleep Timer %1$s</string>
+    <string name="sleep_timer_minutes">%1$d minutes</string>
+    <string name="sleep_timer_custom">Custom…</string>
+    <string name="sleep_timer_cancel">Cancel Timer</string>
+    <string name="sleep_timer_remaining_text">Stops in %1$s</string>
+    <string name="sleep_timer_hint">Choose a duration; playback will stop when the timer ends</string>
+    <string name="sleep_timer_custom_title">Custom Duration</string>
+    <string name="sleep_timer_custom_hint">Enter minutes (e.g. 25)</string>
+    <string name="minutes">minutes</string>
+    <string name="quality_help_title">Quality Info</string>
+    <string name="quality_help_message">Quality depends on the station source and network conditions</string>
+    <string name="quality_help_got_it">Got it</string>
+
+    <string name="quality_mono">Mono</string>
+    <string name="quality_stereo">Stereo</string>
+    <string name="quality_channels">%1$d channels</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_appearance">Theme</string>
+    <string name="settings_appearance_system">System</string>
+    <string name="settings_appearance_light">Light</string>
+    <string name="settings_appearance_dark">Dark</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_system">System</string>
+    <string name="settings_language_zh">简体中文</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_restart_hint">Language change will take effect after restarting the app</string>
+
+    <string name="settings_section_subscription">Subscriptions</string>
+    <string name="settings_auto_sync">Auto-sync on launch</string>
+    <string name="settings_no_subscription">No subscriptions yet. Add an m3u URL below, then use the sync button to fetch stations (deduplicated by stream URL).</string>
+    <string name="settings_sync_manual">Sync All Subscriptions</string>
+    <string name="settings_syncing">Syncing…</string>
+    <string name="settings_add_subscription">Add Subscription</string>
+    <string name="settings_sync_success">Added %1$d new station(s) (deduplicated by stream URL)</string>
+    <string name="settings_sync_failed">Sync failed. Please check your network and subscription URLs.</string>
+    <string name="settings_sub_name">Name</string>
+    <string name="settings_sub_url">m3u URL</string>
+    <string name="settings_delete_subscription">Delete Subscription</string>
+
+    <string name="settings_section_network">Network</string>
+    <string name="settings_check_connectivity">Check All Stations</string>
+    <string name="settings_checking">Checking…</string>
+    <string name="settings_check_result">Playable: %1$d, failed: %2$d</string>
+    <string name="settings_delete_all_failed">Delete All Failed</string>
+    <string name="settings_failed_default">Failed</string>
+    <string name="settings_remove_from_list">Remove from List</string>
+
+    <string name="settings_section_other">Other</string>
+    <string name="settings_help">Help</string>
+    <string name="settings_about">About</string>
+    <string name="settings_disclaimer">Disclaimer</string>
+    <string name="settings_check_update">Check for Updates</string>
+    <string name="checking_update">Checking…</string>
+    <string name="update_available_title">Update Available: %1$s</string>
+    <string name="update_notes_empty">(No release notes)</string>
+    <string name="update_go">Download</string>
+    <string name="update_later">Later</string>
+    <string name="update_latest">You\'re up to date</string>
+    <string name="update_failed">Check failed. Please check your network and try again.</string>
+
+    <string name="about_title">About</string>
+    <string name="about_section_info">Info</string>
+    <string name="about_section_description">About</string>
+    <string name="about_version">Version</string>
+    <string name="about_author">Author</string>
+    <string name="about_license">License</string>
+    <string name="about_github">GitHub Repo</string>
+    <string name="about_blog">Author\'s Blog</string>
+    <string name="about_disclaimer_link">Disclaimer</string>
+    <string name="about_description">A minimal native internet radio player with playback, favorites, m3u import/subscription, program info display, notification controls, and more.\n\nThis app does not operate, host, or provide any audio content. All playback is for audio stream URLs added by the user.\nStation quality depends on your network and the station source. Please add only sources you have legal authorization to use.\n\n© 2026 GZYZhy</string>
+
+    <string name="help_title">Help</string>
+    <string name="help_getting_started">Getting Started</string>
+    <string name="help_play">Play a station</string>
+    <string name="help_play_desc">Tap a station to start playing</string>
+    <string name="help_search">Search stations</string>
+    <string name="help_search_desc">Use the search bar at the top to filter by name or URL</string>
+    <string name="help_program_info">Program info</string>
+    <string name="help_program_info_desc">Shown automatically when the station source provides a program schedule</string>
+    <string name="help_station_mgmt">Station Management</string>
+    <string name="help_add_station">Add a station</string>
+    <string name="help_add_station_desc">Tap + in the top-right and enter a name and stream URL</string>
+    <string name="help_import_local">Local import</string>
+    <string name="help_import_desc">Tap the download icon and choose an m3u file</string>
+    <string name="help_long_press">Long-press a station</string>
+    <string name="help_long_press_desc">Edit / Move Up / Move Down / Favorite / Delete</string>
+    <string name="help_swipe_left">Swipe left on a station</string>
+    <string name="help_swipe_left_desc">Edit / Delete</string>
+    <string name="help_favorites">Favorites</string>
+    <string name="help_favorite">Favorite a station</string>
+    <string name="help_favorite_desc">Long-press or tap the star icon at the row end; also supported from the notification</string>
+    <string name="help_favorites_list">Favorites list</string>
+    <string name="help_favorites_list_desc">Sidebar → Favorites to view all starred stations</string>
+    <string name="help_subscriptions">Subscriptions</string>
+    <string name="help_sub_entry">Where to find</string>
+    <string name="help_sub_entry_desc">Sidebar → Settings → Subscriptions</string>
+    <string name="help_sub_add">Add a subscription</string>
+    <string name="help_sub_add_desc">Enter a name and m3u URL</string>
+    <string name="help_sub_manual_sync">Manual sync</string>
+    <string name="help_sub_manual_sync_desc">Downloads and parses the list, then adds only stations not already present (deduplicated by URL)</string>
+    <string name="help_sub_auto_sync">Auto-sync on launch</string>
+    <string name="help_sub_auto_sync_desc">When enabled, subscriptions are fetched and synced automatically at launch</string>
+    <string name="help_sub_note">Note</string>
+    <string name="help_sub_note_desc">Sync never removes existing stations; it only adds new ones</string>
+    <string name="help_network">Network</string>
+    <string name="help_connectivity_check">Connectivity check</string>
+    <string name="help_connectivity_check_desc">Sidebar → Settings → Check All Stations</string>
+    <string name="help_delete_station">Delete stations</string>
+    <string name="help_delete_desc">Delete all failed at once / swipe left to remove individual failed stations</string>
+    <string name="help_network_note">Note</string>
+    <string name="help_network_note_desc">Checking may take a while if you have many stations</string>
+    <string name="help_appearance_other">Appearance &amp; Other</string>
+    <string name="help_theme">Theme</string>
+    <string name="help_theme_desc">Settings → Appearance: System / Light / Dark</string>
+    <string name="help_background_playback">Background playback</string>
+    <string name="help_background_playback_desc">View program info and switch stations from the notification shade</string>
+    <string name="help_quality_indicator">Quality indicator</string>
+    <string name="help_quality_indicator_desc">The Now Playing screen shows bitrate, format, latency, and channel info when available</string>
+
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="notification_channel_playback">Playback Controls</string>
+    <string name="notification_channel_playback_desc">Radio playback controls</string>
+
+    <string name="error_invalid_url">Invalid stream URL</string>
+    <string name="error_playback_failed">Playback failed</string>
+    <string name="error_invalid_address">Invalid address</string>
+
+    <string name="crash_report_title">Last run crashed</string>
+    <string name="crash_report_message">The app exited abnormally last time. View crash log?</string>
+    <string name="crash_report_view">View</string>
+    <string name="crash_report_close">Close</string>
+</resources>

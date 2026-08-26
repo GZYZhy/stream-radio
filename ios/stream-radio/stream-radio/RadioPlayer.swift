@@ -34,9 +34,9 @@ struct AudioQuality: Equatable {
 
     static func channelText(_ n: Int) -> String {
         switch n {
-        case 1: return "单声道"
-        case 2: return "立体声"
-        default: return "\(n) 声道"
+        case 1: return NSLocalizedString("quality_mono", comment: "")
+        case 2: return NSLocalizedString("quality_stereo", comment: "")
+        default: return String(format: NSLocalizedString("quality_channels", comment: ""), n)
         }
     }
 }
@@ -86,13 +86,8 @@ final class PlayerManager {
     func configureAudioSession() {
         let session = AVAudioSession.sharedInstance()
         try? session.setCategory(.playback, mode: .default)
-        // 异步激活会话，避免同步 API 在主线程阻塞（可能引起启动卡顿）；
-        // iOS 27+ 用新异步 API，低版本回退同步 setActive
-        if #available(iOS 27, *) {
-            session.activate(options: []) { _, _ in }
-        } else {
-            try? session.setActive(true)
-        }
+        // 激活音频会话（后台播放需要）
+        try? session.setActive(true)
     }
     #endif
 
@@ -133,7 +128,7 @@ final class PlayerManager {
         latencyMs = nil
         latencyStart = Date()
         guard let url = URL(string: station.url) else {
-            errorMessage = "无效的播放地址"
+            errorMessage = NSLocalizedString("error_invalid_url", comment: "")
             return
         }
         // 携带默认 UA 与 Icy-MetaData 请求头，让支持 ICY 的电台返回流内节目信息
@@ -146,7 +141,7 @@ final class PlayerManager {
         statusObserver?.invalidate()
         statusObserver = item.observe(\AVPlayerItem.status, options: [.new]) { [weak self] item, _ in
             guard item.status == .failed else { return }
-            let message = item.error?.localizedDescription ?? "播放失败"
+            let message = item.error?.localizedDescription ?? NSLocalizedString("error_playback_failed", comment: "")
             // 先解到局部 let，避免 Swift 6 下捕获 weak var 进并发 Task
             let me = self
             Task { @MainActor in
@@ -213,18 +208,10 @@ final class PlayerManager {
                     .first(where: { $0.mediaType == .audio }),
                    let rate = try? await liveTrack.load(.estimatedDataRate), rate > 0 {
                     bitrateBits = Int(rate * 8)
-                } else if let item = player.currentItem {
-                    let log: AVPlayerItemAccessLog?
-                    if #available(iOS 27, *) {
-                        log = await withCheckedContinuation { cont in
-                            item.fetchAccessLog(completionHandler: { l in cont.resume(returning: l) })
-                        }
-                    } else {
-                        log = item.accessLog()
-                    }
-                    if let ev = log?.events.last, ev.indicatedBitrate > 0 {
-                        bitrateBits = Int(ev.indicatedBitrate)
-                    }
+                } else if let item = player.currentItem,
+                          let ev = item.accessLog()?.events.last,
+                          ev.indicatedBitrate > 0 {
+                    bitrateBits = Int(ev.indicatedBitrate)
                 }
                 if bitrateBits > 0 { q.bitrateKbps = max(1, bitrateBits / 1000) }
             }
@@ -334,7 +321,7 @@ final class PlayerManager {
         } else {
             // 无节目单：标题=电台，艺术家=应用名
             info[MPMediaItemPropertyTitle] = currentStation.name
-            info[MPMediaItemPropertyArtist] = "网络电台"
+            info[MPMediaItemPropertyArtist] = NSLocalizedString("app_name", comment: "")
         }
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
         refreshBookmarkState()

@@ -1,11 +1,18 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#else
+import AppKit
+#endif
 
 // 设置页：订阅管理（手动同步）+ 连通性检查
 struct SettingsView: View {
     @Environment(StationStore.self) private var store
 
     @AppStorage("appearanceMode") private var appearanceMode = "system"
+    @AppStorage("appLanguage") private var appLanguage = "system"
     @AppStorage("autoSyncOnLaunch") private var autoSyncOnLaunch = false
+    @State private var showLanguageRestartAlert = false
     #if os(macOS)
     // 关闭主窗口时的行为（仅 macOS；iOS 无此概念，保持原样）
     @AppStorage("macCloseBehavior") private var closeBehavior = "ask"
@@ -17,35 +24,51 @@ struct SettingsView: View {
     @State private var syncResult: String?
     @State private var checking = false
     @State private var checkResults: [String: ConnectivityChecker.Result] = [:]
+    // 检查更新：手动触发，结果用 alert（简单提示）或 sheet（可滚动更新说明）展示
+    @State private var checkingUpdate = false
+    @State private var updateResult: UpdateCheckResult?
+    @State private var showUpdateAlert = false
+    @State private var showUpdateSheet = false
 
     var body: some View {
         Form {
-            Section("外观") {
-                Picker("外观", selection: $appearanceMode) {
-                    Text("跟随系统").tag("system")
-                    Text("浅色").tag("light")
-                    Text("深色").tag("dark")
+            Section(NSLocalizedString("settings_section_appearance", comment: "")) {
+                Picker(NSLocalizedString("settings_appearance", comment: ""), selection: $appearanceMode) {
+                    Text(NSLocalizedString("settings_appearance_system", comment: "")).tag("system")
+                    Text(NSLocalizedString("settings_appearance_light", comment: "")).tag("light")
+                    Text(NSLocalizedString("settings_appearance_dark", comment: "")).tag("dark")
                 }
                 .pickerStyle(.segmented)
+
+                Picker(NSLocalizedString("settings_language", comment: ""), selection: $appLanguage) {
+                    Text(NSLocalizedString("settings_language_system", comment: "")).tag("system")
+                    Text(NSLocalizedString("settings_language_zh", comment: "")).tag("zh-Hans")
+                    Text(NSLocalizedString("settings_language_en", comment: "")).tag("en")
+                    Text(NSLocalizedString("settings_language_fr", comment: "")).tag("fr")
+                    Text(NSLocalizedString("settings_language_ja", comment: "")).tag("ja")
+                }
+                .onChange(of: appLanguage) { _, _ in
+                    showLanguageRestartAlert = true
+                }
             }
 
             #if os(macOS)
-            Section("窗口") {
-                Picker("关闭主窗口时", selection: $closeBehavior) {
-                    Text("每次询问").tag("ask")
-                    Text("最小化到托盘").tag("hideToTray")
-                    Text("退出程序").tag("quit")
+            Section(NSLocalizedString("settings_section_window", comment: "")) {
+                Picker(NSLocalizedString("settings_close_behavior", comment: ""), selection: $closeBehavior) {
+                    Text(NSLocalizedString("settings_close_ask", comment: "")).tag("ask")
+                    Text(NSLocalizedString("settings_close_hide", comment: "")).tag("hideToTray")
+                    Text(NSLocalizedString("settings_close_quit", comment: "")).tag("quit")
                 }
-                Text("选择「最小化到托盘」后，关闭窗口会隐藏到菜单栏托盘；选择「退出程序」则直接结束应用。")
+                Text(NSLocalizedString("settings_close_hint", comment: ""))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             #endif
 
-            Section("订阅") {
-                Toggle("启动时自动同步", isOn: $autoSyncOnLaunch)
+            Section(NSLocalizedString("settings_section_subscription", comment: "")) {
+                Toggle(NSLocalizedString("settings_auto_sync", comment: ""), isOn: $autoSyncOnLaunch)
                 if store.subscriptions.isEmpty {
-                    Text("暂无订阅。添加 m3u 链接后，用下方按钮手动同步拉取电台（按播放链接去重）。")
+                    Text(NSLocalizedString("settings_no_subscription", comment: ""))
                         .foregroundStyle(.secondary)
                 }
                 ForEach(store.subscriptions) { sub in
@@ -59,7 +82,7 @@ struct SettingsView: View {
                 }
             }
 
-            Section("网络") {
+            Section(NSLocalizedString("settings_section_network", comment: "")) {
                 networkCheckButton
                 if checking {
                     ProgressView()
@@ -67,18 +90,22 @@ struct SettingsView: View {
                     checkResultsContent
                 }
             }
+
+            Section(NSLocalizedString("settings_section_other", comment: "")) {
+                updateButton
+            }
         }
         #if os(iOS)
         .listStyle(.insetGrouped)
         #else
         .formStyle(.grouped)
         #endif
-        .navigationTitle("设置")
-        .alert("添加订阅", isPresented: $showAddSub) {
-            TextField("名称", text: $subName)
-            TextField("m3u 链接", text: $subURL)
-            Button("取消", role: .cancel) { resetSubFields() }
-            Button("添加") {
+        .navigationTitle(NSLocalizedString("nav_title_settings", comment: ""))
+        .alert(NSLocalizedString("settings_add_sub_title", comment: ""), isPresented: $showAddSub) {
+            TextField(NSLocalizedString("name", comment: ""), text: $subName)
+            TextField(NSLocalizedString("m3u_link", comment: ""), text: $subURL)
+            Button(NSLocalizedString("cancel", comment: ""), role: .cancel) { resetSubFields() }
+            Button(NSLocalizedString("add", comment: "")) {
                 let name = subName.trimmingCharacters(in: .whitespaces)
                 let url = subURL.trimmingCharacters(in: .whitespaces)
                 if !name.isEmpty && !url.isEmpty {
@@ -87,6 +114,19 @@ struct SettingsView: View {
                 resetSubFields()
             }
             .disabled(subName.trimmingCharacters(in: .whitespaces).isEmpty)
+        }
+        .alert(NSLocalizedString("settings_language", comment: ""), isPresented: $showLanguageRestartAlert) {
+            Button(NSLocalizedString("ok", comment: ""), role: .cancel) { }
+        } message: {
+            Text(NSLocalizedString("settings_language_restart_hint", comment: ""))
+        }
+        .alert(updateAlertTitle, isPresented: $showUpdateAlert) {
+            Button(NSLocalizedString("ok", comment: ""), role: .cancel) { }
+        }
+        .sheet(isPresented: $showUpdateSheet) {
+            if case let .updateAvailable(latest, notes) = updateResult {
+                UpdateSheetView(version: latest, notes: notes) { openDownloadPage() }
+            }
         }
     }
 
@@ -101,7 +141,7 @@ struct SettingsView: View {
                 .lineLimit(1)
         }
         .swipeActions(edge: .trailing) {
-            Button("删除", role: .destructive) { store.removeSubscription(sub) }
+            Button(NSLocalizedString("delete", comment: ""), role: .destructive) { store.removeSubscription(sub) }
         }
         #else
         HStack(alignment: .center) {
@@ -119,34 +159,35 @@ struct SettingsView: View {
                 Image(systemName: "trash")
             }
             .buttonStyle(.borderless)
-            .help("删除订阅")
+            .help(NSLocalizedString("row_delete_subscription", comment: ""))
         }
         #endif
     }
 
     @ViewBuilder
     private var syncButtons: some View {
+        let syncLabel = syncing
+            ? NSLocalizedString("settings_syncing", comment: "")
+            : NSLocalizedString("settings_sync_manual", comment: "")
         #if os(iOS)
         Button {
             Task { await syncAll() }
         } label: {
-            Label(syncing ? "同步中…" : "手动同步全部订阅",
-                  systemImage: "arrow.triangle.2.circlepath")
+            Label(syncLabel, systemImage: "arrow.triangle.2.circlepath")
         }
         .disabled(syncing || store.subscriptions.isEmpty)
-        Button("添加订阅") { showAddSub = true }
+        Button(NSLocalizedString("settings_add_subscription", comment: "")) { showAddSub = true }
         #else
         HStack {
             Button {
                 Task { await syncAll() }
             } label: {
-                Label(syncing ? "同步中…" : "手动同步全部订阅",
-                      systemImage: "arrow.triangle.2.circlepath")
+                Label(syncLabel, systemImage: "arrow.triangle.2.circlepath")
             }
             .disabled(syncing || store.subscriptions.isEmpty)
             .buttonStyle(.borderedProminent)
 
-            Button("添加订阅") { showAddSub = true }
+            Button(NSLocalizedString("settings_add_subscription", comment: "")) { showAddSub = true }
                 .buttonStyle(.bordered)
 
             if syncing {
@@ -160,12 +201,14 @@ struct SettingsView: View {
 
     @ViewBuilder
     private var networkCheckButton: some View {
+        let checkLabel = checking
+            ? NSLocalizedString("settings_checking", comment: "")
+            : NSLocalizedString("settings_check_connectivity", comment: "")
         #if os(iOS)
         Button {
             Task { await runChecks() }
         } label: {
-            Label(checking ? "检查中…" : "检查全部电台连通性",
-                  systemImage: "network")
+            Label(checkLabel, systemImage: "network")
         }
         .disabled(checking)
         #else
@@ -173,8 +216,7 @@ struct SettingsView: View {
             Button {
                 Task { await runChecks() }
             } label: {
-                Label(checking ? "检查中…" : "检查全部电台连通性",
-                      systemImage: "network")
+                Label(checkLabel, systemImage: "network")
             }
             .disabled(checking)
             .buttonStyle(.bordered)
@@ -189,14 +231,45 @@ struct SettingsView: View {
     }
 
     @ViewBuilder
+    private var updateButton: some View {
+        let label = checkingUpdate
+            ? NSLocalizedString("checking_update", comment: "")
+            : NSLocalizedString("settings_check_update", comment: "")
+        #if os(iOS)
+        Button {
+            Task { await checkUpdate() }
+        } label: {
+            Label(label, systemImage: "arrow.down.circle")
+        }
+        .disabled(checkingUpdate)
+        #else
+        HStack {
+            Button {
+                Task { await checkUpdate() }
+            } label: {
+                Label(label, systemImage: "arrow.down.circle")
+            }
+            .disabled(checkingUpdate)
+            .buttonStyle(.bordered)
+
+            if checkingUpdate {
+                ProgressView()
+                    .controlSize(.small)
+                    .padding(.leading, 4)
+            }
+        }
+        #endif
+    }
+
+    @ViewBuilder
     private var checkResultsContent: some View {
         let ok = checkResults.values.filter(\.ok).count
         let fail = Array(checkResults.filter { !$0.value.ok })
         HStack {
-            Text("可播 \(ok) 个，失败 \(fail.count) 个")
+            Text(String(format: NSLocalizedString("settings_check_result", comment: ""), ok, fail.count))
             Spacer()
             if !fail.isEmpty {
-                Button("删除全部失败", role: .destructive) { deleteAllFailed() }
+                Button(NSLocalizedString("settings_delete_all_failed", comment: ""), role: .destructive) { deleteAllFailed() }
                     .font(.caption)
             }
         }
@@ -212,19 +285,19 @@ struct SettingsView: View {
             Text(store.stations.first { $0.url == url }?.name ?? url)
                 .lineLimit(1)
             Spacer()
-            Text(result.message ?? "失败")
+            Text(result.message ?? NSLocalizedString("settings_failed_default", comment: ""))
                 .font(.caption)
                 .foregroundStyle(.red)
         }
         .swipeActions(edge: .trailing) {
-            Button("从列表删除", role: .destructive) { deleteFailed(url) }
+            Button(NSLocalizedString("row_delete_from_list", comment: ""), role: .destructive) { deleteFailed(url) }
         }
         #else
         HStack {
             Text(store.stations.first { $0.url == url }?.name ?? url)
                 .lineLimit(1)
             Spacer()
-            Text(result.message ?? "失败")
+            Text(result.message ?? NSLocalizedString("settings_failed_default", comment: ""))
                 .font(.caption)
                 .foregroundStyle(.red)
             Button(role: .destructive) {
@@ -233,7 +306,7 @@ struct SettingsView: View {
                 Image(systemName: "trash")
             }
             .buttonStyle(.borderless)
-            .help("从列表删除")
+            .help(NSLocalizedString("row_delete_from_list", comment: ""))
         }
         #endif
     }
@@ -247,7 +320,9 @@ struct SettingsView: View {
         syncing = true
         syncResult = nil
         let n = await store.syncAllSubscriptions()
-        syncResult = n < 0 ? "同步失败，请检查网络与订阅链接" : "已新增 \(n) 个电台（按播放链接去重）"
+        syncResult = n < 0
+            ? NSLocalizedString("settings_sync_result_failed", comment: "")
+            : String(format: NSLocalizedString("settings_sync_result_success", comment: ""), n)
         syncing = false
     }
 
@@ -258,6 +333,36 @@ struct SettingsView: View {
             checkResults[station.url] = await ConnectivityChecker.check(station.url)
         }
         checking = false
+    }
+
+    /// 手动检查更新：网络请求在后台执行，完成后按结果展示弹窗或可滚动更新说明
+    private func checkUpdate() async {
+        checkingUpdate = true
+        let result = await UpdateChecker.check()
+        updateResult = result
+        checkingUpdate = false
+        switch result {
+        case .updateAvailable: showUpdateSheet = true
+        case .upToDate, .failed: showUpdateAlert = true
+        }
+    }
+
+    /// 简单提示的标题（已是最新 / 检查失败）
+    private var updateAlertTitle: String {
+        switch updateResult {
+        case .upToDate: return NSLocalizedString("update_latest", comment: "")
+        case .failed, nil: return NSLocalizedString("update_failed", comment: "")
+        default: return ""
+        }
+    }
+
+    /// 打开更新下载页（当前跳 GitHub releases，将来可改为 App Store）
+    private func openDownloadPage() {
+        #if os(iOS)
+        UIApplication.shared.open(UpdateChecker.downloadURL)
+        #else
+        NSWorkspace.shared.open(UpdateChecker.downloadURL)
+        #endif
     }
 
     private func deleteFailed(_ url: String) {
@@ -278,6 +383,14 @@ struct AboutView: View {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
     }()
 
+    /// 免责声明链接：中文环境跳中文版，其他跳英文版
+    static var disclaimerURL: URL {
+        let isZh = Bundle.main.preferredLocalizations.first?.hasPrefix("zh") ?? true
+        let anchor = isZh ? "#%E5%85%8D%E8%B4%A3%E5%A3%B0%E6%98%8E" : "#disclaimer"
+        let file = isZh ? "README.md" : "README.en.md"
+        return URL(string: "https://github.com/GZYZhy/stream-radio/blob/main/\(file)\(anchor)")!
+    }
+
     #if os(iOS)
     private let platformName = "iOS"
     #else
@@ -291,23 +404,23 @@ struct AboutView: View {
                 .listRowSeparator(.hidden)
                 #endif
 
-            Section("信息") {
-                LabeledContent("版本") { Text("\(Self.appVersion) (\(platformName))") }
-                LabeledContent("作者") { Text("GZYZhy") }
-                LabeledContent("许可证") { Text("MIT") }
+            Section(NSLocalizedString("about_section_info", comment: "")) {
+                LabeledContent(NSLocalizedString("about_version", comment: "")) { Text("\(Self.appVersion) (\(platformName))") }
+                LabeledContent(NSLocalizedString("about_author", comment: "")) { Text("GZYZhy") }
+                LabeledContent(NSLocalizedString("about_license", comment: "")) { Text("MIT") }
                 Link(destination: URL(string: "https://github.com/GZYZhy/stream-radio")!) {
-                    Label("GitHub 仓库", systemImage: "link")
+                    Label(NSLocalizedString("about_github", comment: ""), systemImage: "link")
                 }
                 Link(destination: URL(string: "https://www.zdeweb.cn")!) {
-                    Label("作者博客", systemImage: "link")
+                    Label(NSLocalizedString("about_blog", comment: ""), systemImage: "link")
                 }
-                Link(destination: URL(string: "https://github.com/GZYZhy/stream-radio#免责声明")!) {
-                    Label("免责声明", systemImage: "link")
+                Link(destination: Self.disclaimerURL) {
+                    Label(NSLocalizedString("about_disclaimer_link", comment: ""), systemImage: "link")
                 }
             }
 
-            Section("说明") {
-                Text("极简原生网络电台播放器，支持电台播放、收藏、m3u 导入订阅、节目信息显示、通知栏控制等功能。\n\n本程序不运营、不存储、不提供任何音频内容，所有播放能力仅面向用户自行添加的音频流地址。\n电台质量与网络环境和电台来源有关，请自行添加拥有合法授权的音源。\n\n© 2026 GZYZhy")
+            Section(NSLocalizedString("about_section_description", comment: "")) {
+                Text(NSLocalizedString("about_description", comment: ""))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -317,7 +430,7 @@ struct AboutView: View {
         #else
         .formStyle(.grouped)
         #endif
-        .navigationTitle("关于")
+        .navigationTitle(NSLocalizedString("nav_title_about", comment: ""))
     }
 
     @ViewBuilder
@@ -327,7 +440,7 @@ struct AboutView: View {
                 .resizable()
                 .frame(width: 96, height: 96)
                 .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            Text("网络电台")
+            Text(NSLocalizedString("app_name", comment: ""))
                 .font(.title2.bold())
         }
         .frame(maxWidth: .infinity)
@@ -339,48 +452,48 @@ struct AboutView: View {
 struct HelpView: View {
     var body: some View {
         Form {
-            Section("快速上手") {
-                LabeledContent("播放电台") { Text("点击电台即可开始播放") }
-                LabeledContent("搜索电台") { Text("列表顶部搜索框，按名称/地址过滤") }
-                LabeledContent("节目信息") { Text("当电台来源包含节目单时会自动展示") }
+            Section(NSLocalizedString("help_section_getting_started", comment: "")) {
+                LabeledContent(NSLocalizedString("help_play", comment: "")) { Text(NSLocalizedString("help_play_desc", comment: "")) }
+                LabeledContent(NSLocalizedString("help_search", comment: "")) { Text(NSLocalizedString("help_search_desc", comment: "")) }
+                LabeledContent(NSLocalizedString("help_program_info", comment: "")) { Text(NSLocalizedString("help_program_info_desc", comment: "")) }
             }
 
-            Section("电台管理") {
-                LabeledContent("添加电台") { Text("列表右上角「+」填写名称与播放地址") }
-                LabeledContent("本地导入") { Text(importHint) }
+            Section(NSLocalizedString("help_section_station_mgmt", comment: "")) {
+                LabeledContent(NSLocalizedString("help_add_station", comment: "")) { Text(NSLocalizedString("help_add_station_desc", comment: "")) }
+                LabeledContent(NSLocalizedString("help_import_local", comment: "")) { Text(importHint) }
                 LabeledContent(longPressLabel) {
-                    Text("编辑 / 上移 / 下移 / 标星 / 删除")
+                    Text(NSLocalizedString("help_context_menu_desc", comment: ""))
                 }
                 #if os(iOS)
-                LabeledContent("左滑电台") { Text("编辑 / 删除") }
+                LabeledContent(NSLocalizedString("help_swipe_left", comment: "")) { Text(NSLocalizedString("help_swipe_left_desc", comment: "")) }
                 #endif
             }
 
-            Section("星标") {
-                LabeledContent("标星") { Text(favoriteHint) }
-                LabeledContent("星标列表") { Text("侧边栏 → 星标台 可查看所有标星电台") }
+            Section(NSLocalizedString("help_section_favorites", comment: "")) {
+                LabeledContent(NSLocalizedString("help_favorite", comment: "")) { Text(favoriteHint) }
+                LabeledContent(NSLocalizedString("help_favorites_list", comment: "")) { Text(NSLocalizedString("help_favorites_list_desc", comment: "")) }
             }
 
-            Section("订阅") {
-                LabeledContent("入口") { Text("侧边栏 → 设置 → 订阅") }
-                LabeledContent("添加订阅") { Text("填写名称与 m3u 链接") }
-                LabeledContent("手动同步") { Text("下载解析后按播放链接去重，只新增不重复的电台") }
-                LabeledContent("启动时同步") { Text("打开后启动时会自动拉取链接进行同步") }
-                LabeledContent("说明") { Text("同步功能不会移除已存在的电台，仅新增不重复的电台") }
+            Section(NSLocalizedString("help_section_subscriptions", comment: "")) {
+                LabeledContent(NSLocalizedString("help_sub_entry", comment: "")) { Text(NSLocalizedString("help_sub_entry_desc", comment: "")) }
+                LabeledContent(NSLocalizedString("help_sub_add", comment: "")) { Text(NSLocalizedString("help_sub_add_desc", comment: "")) }
+                LabeledContent(NSLocalizedString("help_sub_manual_sync", comment: "")) { Text(NSLocalizedString("help_sub_manual_sync_desc", comment: "")) }
+                LabeledContent(NSLocalizedString("help_sub_auto_sync", comment: "")) { Text(NSLocalizedString("help_sub_auto_sync_desc", comment: "")) }
+                LabeledContent(NSLocalizedString("help_sub_note", comment: "")) { Text(NSLocalizedString("help_sub_note_desc", comment: "")) }
             }
 
-            Section("网络") {
-                LabeledContent("连通性检查") { Text("侧边栏 → 设置 → 检查全部电台") }
-                LabeledContent("删除电台") { Text(deleteHint) }
-                LabeledContent("说明") { Text("当电台数量过多时，检查可能需要较长时间") }
+            Section(NSLocalizedString("help_section_network", comment: "")) {
+                LabeledContent(NSLocalizedString("help_connectivity_check", comment: "")) { Text(NSLocalizedString("help_connectivity_check_desc", comment: "")) }
+                LabeledContent(NSLocalizedString("help_delete_station", comment: "")) { Text(deleteHint) }
+                LabeledContent(NSLocalizedString("help_network_note", comment: "")) { Text(NSLocalizedString("help_network_note_desc", comment: "")) }
             }
 
-            Section("外观与其他") {
-                LabeledContent("深浅色") { Text("设置 → 外观，跟随系统 / 浅色 / 深色") }
-                LabeledContent("后台播放") { Text("通知栏 / 控制中心可查看节目并切台") }
-                LabeledContent("质量指示") { Text("播放页会展示获取到的码率、格式、延迟、声道数信息") }
+            Section(NSLocalizedString("help_section_appearance_other", comment: "")) {
+                LabeledContent(NSLocalizedString("help_theme", comment: "")) { Text(NSLocalizedString("help_theme_desc", comment: "")) }
+                LabeledContent(NSLocalizedString("help_background_playback", comment: "")) { Text(NSLocalizedString("help_background_playback_desc", comment: "")) }
+                LabeledContent(NSLocalizedString("help_quality_indicator", comment: "")) { Text(NSLocalizedString("help_quality_indicator_desc", comment: "")) }
                 #if os(iOS)
-                LabeledContent("播放设备") { Text("请通过控制中心切换播放声音的设备") }
+                LabeledContent(NSLocalizedString("help_playback_device", comment: "")) { Text(NSLocalizedString("help_playback_device_desc", comment: "")) }
                 #endif
             }
         }
@@ -389,38 +502,76 @@ struct HelpView: View {
         #else
         .formStyle(.grouped)
         #endif
-        .navigationTitle("帮助")
+        .navigationTitle(NSLocalizedString("nav_title_help", comment: ""))
     }
 
     private var longPressLabel: String {
         #if os(iOS)
-        "长按电台"
+        NSLocalizedString("help_long_press_ios", comment: "")
         #else
-        "右键电台"
+        NSLocalizedString("help_right_click_macos", comment: "")
         #endif
     }
 
     private var importHint: String {
         #if os(iOS)
-        "列表右上角「⇩」从「文件」选择m3u文件"
+        NSLocalizedString("help_import_ios", comment: "")
         #else
-        "列表右上角「⇩」选择 m3u 文件"
+        NSLocalizedString("help_import_macos", comment: "")
         #endif
     }
 
     private var favoriteHint: String {
         #if os(iOS)
-        "长按或点行尾星标，支持控制中心星标"
+        NSLocalizedString("help_favorite_ios", comment: "")
         #else
-        "点击行尾星标图标 / 右键菜单，支持控制中心星标"
+        NSLocalizedString("help_favorite_macos", comment: "")
         #endif
     }
 
     private var deleteHint: String {
         #if os(iOS)
-        "可一键删除 / 左划删除失败电台"
+        NSLocalizedString("help_delete_ios", comment: "")
         #else
-        "可一键删除 / 单独删除失败电台"
+        NSLocalizedString("help_delete_macos", comment: "")
+        #endif
+    }
+}
+
+// MARK: - 发现新版本弹窗
+// 可滚动展示更新说明（说明可能很长），底部提供「前往下载 / 稍后」
+private struct UpdateSheetView: View {
+    let version: String
+    let notes: String
+    let onDownload: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text(String(format: NSLocalizedString("update_available_title", comment: ""), version))
+                .font(.headline)
+                .padding()
+            Divider()
+            ScrollView {
+                Text(notes.isEmpty ? NSLocalizedString("update_notes_empty", comment: "") : notes)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+            }
+            Divider()
+            HStack {
+                Button(NSLocalizedString("update_later", comment: "")) { dismiss() }
+                Spacer()
+                Button(NSLocalizedString("update_go", comment: "")) {
+                    dismiss()
+                    onDownload()
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .padding()
+        }
+        .frame(minWidth: 380, minHeight: 320)
+        #if os(iOS)
+        .presentationDetents([.medium, .large])
         #endif
     }
 }

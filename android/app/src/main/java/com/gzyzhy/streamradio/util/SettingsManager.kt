@@ -17,6 +17,7 @@ class SettingsManager(private val context: Context) {
 
     private val appearanceKey = stringPreferencesKey("appearanceMode")
     private val autoSyncKey = booleanPreferencesKey("autoSyncOnLaunch")
+    private val appLanguageKey = stringPreferencesKey("app_language")
 
     val appearanceMode: Flow<String> = context.settingsDataStore.data.map {
         it[appearanceKey] ?: "system"
@@ -26,8 +27,16 @@ class SettingsManager(private val context: Context) {
         it[autoSyncKey] ?: false
     }
 
+    val appLanguage: Flow<String> = context.settingsDataStore.data.map {
+        it[appLanguageKey] ?: "system"
+    }
+
     suspend fun setAppearanceMode(mode: String) {
         context.settingsDataStore.edit { it[appearanceKey] = mode }
+    }
+
+    suspend fun setAppLanguage(value: String) {
+        context.settingsDataStore.edit { it[appLanguageKey] = value }
     }
 
     suspend fun setAutoSyncOnLaunch(value: Boolean) {

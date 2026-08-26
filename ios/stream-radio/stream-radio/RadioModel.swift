@@ -225,7 +225,7 @@ enum ConnectivityChecker {
 
     static func check(_ urlString: String, timeout: TimeInterval = 5) async -> Result {
         guard let url = URL(string: urlString) else {
-            return Result(ok: false, durationMs: 0, message: "无效地址")
+            return Result(ok: false, durationMs: 0, message: NSLocalizedString("error_invalid_address", comment: ""))
         }
         let start = Date()
         var request = URLRequest(url: url)
