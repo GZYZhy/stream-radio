@@ -9,12 +9,8 @@ import java.util.concurrent.TimeUnit
 // m3u 解析器：与 iOS 版一致的宽松逻辑
 object M3UParser {
 
-    // 内置示例电台
-    val builtin: List<Station> = listOf(
-        Station(name = "CCTV-1", url = "https://piccpndali.v.myalicdn.com/audio/cctv1_2.m3u8"),
-        Station(name = "CCTV-13", url = "https://piccpndali.v.myalicdn.com/audio/cctv13_2.m3u8"),
-        Station(name = "CNR 中国之声", url = "https://ngcdn001.cnr.cn/live/zgzs/index.m3u8"),
-    )
+    // 内置示例电台（默认空，让用户自行导入或添加）
+    val builtin: List<Station> = emptyList()
 
     // 解析 m3u 文本
     fun parse(text: String): List<Station> {
